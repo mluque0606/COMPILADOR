@@ -1,0 +1,39 @@
+programa_4 {
+	f32 g;
+ 	fun funcion_1 (f32 a):f32 {
+  		f32 x;
+		x =: tof32(1);
+  		if (x = 1.0) then {
+ 			x =: 4.0;		    
+		};
+        end_if;
+		return(0);
+	};
+
+	fun funcion_2():f32 {
+		f32 h;
+		h =: tof32(25);
+		while (h<30.0) : (h =: h + 1.0) {
+			out('dentro del bucle');
+		};
+		if (h = 30.0) then
+ 		    h =: 100.0;
+ 		else
+		    h =: 150.0;
+		end_if;
+		return(h);
+	};
+
+	fun funcion_3():f32 {
+		f32 p;
+		p =: 10.0;
+		g =: 20.0;
+		while (p<100.0) : (p =: p + 1.0){
+			out('Primer bucle');
+			while (g<50.0) : (g =: g + 2.0) {
+				out('Segundo bucle');
+		    	};
+		};
+		return(0.0);
+	};
+};

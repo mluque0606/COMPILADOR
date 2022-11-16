@@ -1,0 +1,10 @@
+programa_2 {
+	i32 identificador_demasiado_largo;
+	fun funcion1():i32 {
+		if ( x = 2 ) then {
+			x =: 4;
+		};
+		end_if;
+		return (x);
+	};
+};

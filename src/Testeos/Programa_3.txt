@@ -1,0 +1,30 @@
+programa_3 {
+	fun f1(i32 x):i32 {
+		i32 y;
+		y =: 10;
+		while (y < 20) : (y =: y+1){
+			out('ciclo');
+		};
+   		return (x);
+ 	};
+ 	
+	fun f2(i32 x,i32 y):i32 {
+		i32 z;
+		z =: 2; 
+		if(z < 3) then
+			z =: 2;
+		else 
+			z =: 0;
+		end_if;
+		return (0);
+	};
+	
+	fun f3():i32 {
+		i32 x;
+		x =: while (x<10) : (x =: x+1){
+			out('ciclando');
+			x =: x+1;
+		}; else 0;
+		return(x);
+	};
+};

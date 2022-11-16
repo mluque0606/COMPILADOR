@@ -1,0 +1,14 @@
+programa_1 {
+	fun funcion1(i32 y):i32
+	{
+		i32 a;
+		a=:2;
+		i32 z;
+		z =: 3;
+		return (a + z + y);
+		z =: y;
+	};
+	i32 resultado_funcion;
+	resultado_funcion =: discard funcion1(10);
+	out('El resultado de la funcion fue calculado');
+};
