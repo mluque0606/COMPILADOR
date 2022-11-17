@@ -8,6 +8,6 @@ programa_1 {
 		return (a + z + y);
 	};
 	i32 resultado_funcion;
-	resultado_funcion =: funcion1(10);
+	resultado_funcion =: discard funcion1(10);
 	out('El resultado de la funcion fue calculado');
 };

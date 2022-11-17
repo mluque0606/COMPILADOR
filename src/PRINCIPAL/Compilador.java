@@ -488,14 +488,18 @@ public class Compilador {
         Parser p = new Parser();
         p.setSintactico(buffer,al);
         p.yyparse();
-        List<String> estructura = p.getEstructura();
-        List<String> errores_sintacticos = p.getErrores();
+        //List<String> estructura = p.getEstructura();
+        List<String> errores_sintacticos = p.getErroresSintacticos();
         List<String> errores_lexicos = al.getErrores();
+        List<String> errores_semanticos = p.getErroresSemanticos();
         List<Token> tokens = al.getTokens();
+        List<String> polaca = p.getPolaca();
         System.out.println("Tokens: " + tokens);
-        System.out.println("Estructura: " + estructura);
+        System.out.println("Polaca: " + polaca);
+        //System.out.println("Estructura: " + estructura);
         System.out.println("Errores lexicos: " + errores_lexicos);
         System.out.println("Errores sintacticos: " + errores_sintacticos);
+        System.out.println("Errores semanticos: " + errores_semanticos);
         TablaSimbolos.imprimirTabla();
     }
 }

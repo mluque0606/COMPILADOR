@@ -3,7 +3,7 @@ programa_4 {
  	fun funcion_1 (f32 a):f32 {
   		f32 x;
 		x =: tof32(1);
-  		if (x = 1.0) then {
+  		if (x = 1.0) then{
  			x =: 4.0;		    
 		};
         end_if;

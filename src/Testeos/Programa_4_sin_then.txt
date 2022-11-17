@@ -3,7 +3,7 @@ programa_4 {
  	fun funcion_1 (f32 a):f32 {
   		f32 x;
 		x =: tof32(1);
-  		if (x = 1.0) then{
+  		if (x = 1.0) {
  			x =: 4.0;		    
 		};
         end_if;
@@ -16,7 +16,7 @@ programa_4 {
 		while (h<30.0) : (h =: h + 1.0) {
 			out('dentro del bucle');
 		};
-		if (h = 30.0) then
+		if (h = 30.0)
  		    h =: 100.0;
  		else
 		    h =: 150.0;

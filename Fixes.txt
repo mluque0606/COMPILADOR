@@ -1,15 +1,16 @@
 CORRECIONES: 
 	1. No se puede ejecutar por .jar
 	2. Faltan errores:  
-		* Falta valor en un else del while (hecho)
-    		* Falta expresión luego de la comparación (hecho)
+			* Falta valor en un else del while (hecho)
+    		* Falta expresiï¿½n luego de la comparaciï¿½n (hecho)
     		* falta el then en un if (hecho)
-    		* Faltan los parámetros formales y parentesis en una función (hecho)
-    		* Falta tipo de resultado en declaración de función (hecho)
+    		* Faltan los parï¿½metros formales y parentesis en una funciï¿½n (hecho)
+    		* Falta tipo de resultado en declaraciï¿½n de funciï¿½n (hecho)
     		* falta el END_IF. (hecho)
-    		* se invoca a una función y se usa su valor de resultado (hecho)
+    		* se invoca a una funciï¿½n y se usa su valor de resultado (hecho)
 	3. BREAK con etiqueta obligatoria (hecho)
-	4. Permitir BREAK CTE dentro del IF
+	4. Permitir BREAK CTE dentro del IF 
+	5. Acomodar el metodo chequearParametro()
 
 GENERAL
 -> Polaca dinamica para asignaciones, selecciones, iteracion, impresion e invocacion a funcion.
@@ -28,8 +29,8 @@ PARTICULAR
 -> CONVERSIONES EXPLICITAS: Solo hay compatibilidad si se convierte el entero, en una asignacion si el lado izquierdo es entero y el derecho distintio informar error.
 
 SALIDA
--> Impresion de Polaca (con referencia y nombre de la Tabla de Simbolos) ¿Si o si la referencia o solo con el nombre alcanza?
+-> Impresion de Polaca (con referencia y nombre de la Tabla de Simbolos) ï¿½Si o si la referencia o solo con el nombre alcanza?
 -> Errores lexicos, sintacticos y semanticos.
 -> Tabla de Simbolos.
--> ¿Tenemos que mostrar los tokens para ver que funciona bien la rentrega que pidio?
+-> ï¿½Tenemos que mostrar los tokens para ver que funciona bien la rentrega que pidio?
 
