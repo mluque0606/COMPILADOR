@@ -210,11 +210,11 @@ break: BREAK CTE
 ;
 
 seleccion: IF condicion_salto_if then_seleccion_sin_else ENDIF {
-									polaca.add((int)pila.pop(), Integer.toString(polaca.size()));
+									polaca.set((int)pila.pop(), Integer.toString(polaca.size()));
 									}
 									
     | IF condicion_salto_if then_seleccion else_seleccion ENDIF {
-									polaca.add((int)pila.pop(), Integer.toString(polaca.size()));
+									polaca.set((int)pila.pop(), Integer.toString(polaca.size()+1));
 									} 
 
     | IF condicion_salto_if '{' ejecucion_control '}' else_seleccion ENDIF {agregarError(errores_sintacticos,"Error","Se esperan un THEN");}
@@ -227,14 +227,14 @@ seleccion: IF condicion_salto_if then_seleccion_sin_else ENDIF {
 ;
 
 then_seleccion: THEN '{' ejecucion_control '}' ';' {
-								polaca.add((int)pila.pop(), Integer.toString(polaca.size()+2));
+								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
 								agregarToken("SI");
 								agregarToken("BI");
 								}
 								
     | THEN sentencia_ejecutable {
-								polaca.add((int)pila.pop(), Integer.toString(polaca.size()+2));
+								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
 								agregarToken("SI");
 								agregarToken("BI");
@@ -275,15 +275,15 @@ condicion_salto_if: '(' comparacion_bool ')' {
 ;
 
 comparacion_bool: expresion comparador expresion {addEstructura("comparacion");
-												  agregarToken($2.sval);}
+												 agregarToken($2.sval);}
 ;
 
 //Tipos de comparadores aceptados por el lenguaje
 comparador: '>'
     | '<'
     | '='
-    | MAYOR_IGUAL
-    | MENOR_IGUAL
+    | MAYOR_IGUAL 
+    | MENOR_IGUAL 
     | DISTINTO
 ;
 
@@ -293,8 +293,8 @@ asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3
                                                 String punt3 = TablaSimbolos.obtenerSimboloAmbito($3.sval + Parser.ambito.toString());
 
                                                 agregarToken(punt1); 
-                                                agregarToken($2.sval);
-                                                //crearPunteroFuncion(punt1, punt3);
+                                                agregarToken("=:");
+                                                crearPunteroFuncion(punt1, punt3);
                                                 }
                                                 
 	| ID ASIGNACION iteracion_while else_asignacion_iteracion {addEstructura($1.sval + " asignacion " + $3.sval);}
@@ -396,7 +396,7 @@ impresion: OUT'(' CADENA ')' {
 
 public static final String ERROR = "Error";
 public static final String WARNING = "Warning";
-public static final String NAME_MANGLING_CHAR = "@";
+public static final String NAME_MANGLING_CHAR = ".";
 public static final String nombreVariableContrato = "%";
 
 public static String funcion_a_asignar = "";
@@ -429,7 +429,18 @@ public List<String> getEstructura() {
     return estructura;
 }
 
-public List<String> getErrores() {
+public List<String> getPolaca(){
+	return polaca;
+}
+
+public List<String> getErroresSemanticos() {
+    List<String> aux = new ArrayList<>();
+    for(String es: errores_semanticos)
+    	aux.add(es);
+    return aux;
+}
+
+public List<String> getErroresSintacticos() {
     List<String> aux = new ArrayList<>();
     for(String es: errores_sintacticos)
     	aux.add(es);
@@ -591,7 +602,7 @@ private static String nombreFuncion(){
 	return nombre_funcion + ambito.substring(0, ultimo_nmc);
 }
 
-/*public static void crearPunteroFuncion(String puntero_funcion, String funcion_llamada) {
+public static void crearPunteroFuncion(String puntero_funcion, String funcion_llamada) {
         //tomo el tipo de dato de funcion_asignada y funcion de la tabla de simbolos
         String puntero_funcion_asignada = TablaSimbolos.obtenerSimbolo(puntero_funcion);
         String puntero_funcion_llamada = TablaSimbolos.obtenerSimbolo(funcion_llamada);
@@ -599,13 +610,13 @@ private static String nombreFuncion(){
         String tipo_puntero = TablaSimbolos.obtenerAtributo(puntero_funcion_asignada, "tipo");
         String retorno_funcion_llamada = TablaSimbolos.obtenerAtributo(puntero_funcion_llamada, "retorno");
         
-        boolean retorna_funciones = funcion_a_asignar.equals("") && retorno_funcion_llamada.equals(TablaTipos.FUNC_TYPE);
+        boolean retorna_funciones = funcion_a_asignar.equals("") && retorno_funcion_llamada == TablaTipos.FUNC_TYPE;
         boolean es_funcion = !funcion_llamada.equals("");
         
         //pregunto si ninguno de ellos es distinto del tipo string
         if (tipo_puntero.equals(TablaTipos.FUNC_TYPE) && (es_funcion || retorna_funciones)) {
                 //verifico que el atributo 'uso' del simbolo puntero sea: PUNTERO_FUNCION
-        	int puntero_funcion_a_copiar;
+        	String puntero_funcion_a_copiar;
 
                 if (retorna_funciones) {
                         String lexema_a_copiar = TablaSimbolos.obtenerAtributo(puntero_funcion_llamada, "nombre_retorno");
@@ -618,7 +629,7 @@ private static String nombreFuncion(){
                 
                 if (uso_puntero.equals("variable")) {
                         //agrego a los atributos de puntero_funcion todos los atributos de funcion en la tabla de simbolos, con excepcion del atributo 'uso' y 'lexema'
-                        Map<String,String> atributos = TablaSimbolos.obtenerAtributos(puntero_funcion_a_copiar);
+                        Map<String,String> atributos = TablaSimbolos.getAtr(puntero_funcion_a_copiar).getMas();
                         assert atributos != null;
 
                         TablaSimbolos.agregarAtributo(puntero_funcion_asignada, "funcion_asignada", atributos.get("lexema"));
@@ -632,4 +643,4 @@ private static String nombreFuncion(){
 
                 funcion_a_asignar = "";   // reiniciamos la funcion a asignar           
         }
-}*/
+}

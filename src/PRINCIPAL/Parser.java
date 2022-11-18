@@ -663,7 +663,7 @@ final static String yyrule[] = {
 
 public static final String ERROR = "Error";
 public static final String WARNING = "Warning";
-public static final String NAME_MANGLING_CHAR = "@";
+public static final String NAME_MANGLING_CHAR = ".";
 public static final String nombreVariableContrato = "%";
 
 public static String funcion_a_asignar = "";
@@ -696,8 +696,8 @@ public List<String> getEstructura() {
     return estructura;
 }
 
-public List<String> getPolaca() {
-    return polaca;
+public List<String> getPolaca(){
+	return polaca;
 }
 
 public List<String> getErroresSemanticos() {
@@ -911,7 +911,7 @@ public static void crearPunteroFuncion(String puntero_funcion, String funcion_ll
                 funcion_a_asignar = "";   // reiniciamos la funcion a asignar           
         }
 }
-//#line 829 "Parser.java"
+//#line 840 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1192,12 +1192,12 @@ case 25:
 						String simb = TablaSimbolos.obtenerSimbolo(val_peek(0).sval + Parser.ambito.toString());
                         int primerSeparador = Parser.ambito.toString().indexOf(NAME_MANGLING_CHAR);
                         int ultimoSeparador = Parser.ambito.toString().lastIndexOf(NAME_MANGLING_CHAR);
-                        //String nombre_funcion = Parser.ambito.substring(ultimoSeparador + 1) + Parser.ambito.substring(primerSeparador, ultimoSeparador);
-                        //String simbFunc = TablaSimbolos.obtenerSimbolo(nombre_funcion);
+                        String nombre_funcion = Parser.ambito.substring(ultimoSeparador + 1) + Parser.ambito.substring(primerSeparador, ultimoSeparador);
+                        String simbFunc = TablaSimbolos.obtenerSimbolo(nombre_funcion);
                         
                         TablaSimbolos.agregarAtributo(simb, "tipo", tipo);
                         TablaSimbolos.agregarAtributo(simb, "uso", "parametro");
-                        //TablaSimbolos.agregarAtributo(simbFunc, "tipo_parametro", tipo);
+                        TablaSimbolos.agregarAtributo(simbFunc, "tipo_parametro", tipo);
                    }
 break;
 case 26:
@@ -1293,13 +1293,13 @@ break;
 case 68:
 //#line 212 "gramatica(copia).y"
 {
-									polaca.add((int)pila.pop(), Integer.toString(polaca.size()));
+									polaca.set((int)pila.pop(), Integer.toString(polaca.size()));
 									}
 break;
 case 69:
 //#line 216 "gramatica(copia).y"
 {
-									polaca.add((int)pila.pop(), Integer.toString(polaca.size()));
+									polaca.set((int)pila.pop(), Integer.toString(polaca.size()+1));
 									}
 break;
 case 70:
@@ -1333,7 +1333,7 @@ break;
 case 77:
 //#line 229 "gramatica(copia).y"
 {
-								polaca.add((int)pila.pop(), Integer.toString(polaca.size()+2));
+								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
 								agregarToken("SI");
 								agregarToken("BI");
@@ -1342,7 +1342,7 @@ break;
 case 78:
 //#line 236 "gramatica(copia).y"
 {
-								polaca.add((int)pila.pop(), Integer.toString(polaca.size()+2));
+								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
 								agregarToken("SI");
 								agregarToken("BI");
@@ -1415,7 +1415,11 @@ break;
 case 98:
 //#line 277 "gramatica(copia).y"
 {addEstructura("comparacion");
-												  agregarToken(val_peek(1).sval);}
+												 agregarToken(val_peek(1).sval);}
+break;
+case 99:
+//#line 282 "gramatica(copia).y"
+{ agregarToken(">");}
 break;
 case 105:
 //#line 291 "gramatica(copia).y"
@@ -1424,7 +1428,6 @@ case 105:
                                                 String punt3 = TablaSimbolos.obtenerSimboloAmbito(val_peek(0).sval + Parser.ambito.toString());
 
                                                 agregarToken(punt1); 
-                                                //agregarToken(val_peek(1).sval);
                                                 agregarToken("=:");
                                                 crearPunteroFuncion(punt1, punt3);
                                                 }
@@ -1542,7 +1545,7 @@ case 131:
 //#line 390 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera que la cadena entre parentesis");}
 break;
-//#line 1454 "Parser.java"
+//#line 1469 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
