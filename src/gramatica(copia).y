@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import AL.TablaTipos;
+import java.util.Map;
+
 
 %}
 
@@ -28,6 +30,7 @@ program: header_program '{' ejecucion '}' ';' {addEstructura("programa");}
 ;
 
 header_program: ID {cambiarAmbito($1.sval);
+					Parser.declarando = false;
 					agregarToken (":START");
 					TablaSimbolos.agregarSimb(nombreVariableContrato);
 					TablaSimbolos.agregarAtributo(TablaSimbolos.obtenerSimbolo(nombreVariableContrato), "tipo", TablaTipos.LONG_TYPE);
@@ -53,12 +56,15 @@ lista_variables: lista_variables ',' ID {
                 }
 ;
 
-sentencia_declarable: declaracion_variables {addEstructura("declaracion variables");}
-        | funcion {addEstructura("declaracion funcion");}
+sentencia_declarable: declaracion_variables {addEstructura("declaracion variables");
+											 Parser.declarando = false; }
+        | funcion {addEstructura("declaracion funcion");
+        		   Parser.declarando = false;}
 ;
 
 funcion: header_funcion ejecucion_funcion {agregarToken(nombreFuncion());
 										   salirAmbito();
+										   Parser.declarando = true;
 										   agregarToken("\\ENDP"); }
 ;
 
@@ -89,6 +95,7 @@ header_funcion: FUN ID '(' lista_parametros ')' ':' tipo {
                         TablaSimbolos.agregarAtributo(simb2, "uso", "variable");
 						
 						cambiarAmbito($2.sval);
+						Parser.declarando = false;
 						agregarToken("!" + nombreFuncion().replace(':', '/'));}
       
       	| FUN ID '(' lista_parametros ')' ':'  {agregarError(errores_sintacticos,"Error","Se espera el tipo de retorno de la funcion");}
@@ -184,17 +191,84 @@ sentencia_ejecutable: asignacion ';'
 invocacion_con_d: DISCARD invocacion
 ;
 
-iteracion_while:  WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' ejecucion_iteracion '}' ';'
-  				| WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' break '}' ';'
-  				| WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' continue '}' ';' 			
-                | WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' sentencia_ejecutable
-                | ID ':' WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' ejecucion_iteracion '}' ';'
-                | ID ':' WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' break '}' ';'                
-                | ID ':' WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' '{' continue '}' ';'           
-                | ID ':' WHILE '(' comparacion_bool ')' ':' '(' asignacion ')' sentencia_ejecutable 
+iteracion_while:  inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));	
+																												agregarToken("#BI");	
+																												}
+  				| inicio_while condicion_salto_while '(' asignacion ')' '{' break '}' ';'{ 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));
+																												agregarToken("#BI");	
+																												}
+  				| inicio_while condicion_salto_while '(' asignacion ')' '{' continue '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));	
+																												agregarToken("#BI");	
+																												}		
+                | inicio_while condicion_salto_while '(' asignacion ')' sentencia_ejecutable { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));	
+																												agregarToken("#BI");	
+																												}
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));	
+																												agregarToken("#BI");	
+																												}
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' break '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));
+																												agregarToken("#BI");	
+																												}     
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' continue '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));
+																												agregarToken("#BI");	
+																												}          
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' sentencia_ejecutable { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));
+																												agregarToken("#BI");	
+																												}
 
-                | WHILE '(' ')' ':' '(' asignacion ')' '{' ejecucion_iteracion '}' ';' {agregarError(errores_sintacticos,"Error","Se espera una comparacion_bool dentro de los '(' ')' ");}
-                | WHILE '(' comparacion_bool ')' ':' '(' ')' '{' ejecucion_iteracion '}' ';' {agregarError(errores_sintacticos,"Error","Se espera una asignacion dentro de los '(' ')'  ");}
+                | inicio_while  '(' asignacion ')' '{' ejecucion_iteracion '}' ';' {agregarError(errores_sintacticos,"Error","Se espera una comparacion_bool ");}
+                | inicio_while condicion_salto_while '(' ')' '{' ejecucion_iteracion '}' ';' {agregarError(errores_sintacticos,"Error","Se espera una asignacion dentro de los '(' ')'  ");}
+;
+
+inicio_while: WHILE { //APILAR PASO INICIAL
+					apilar(); }
+;
+
+condicion_salto_while: '(' comparacion_bool ')' ':' { //GENERO BF INCOMPLETA Y APILO PASO INCOMPLETO
+					apilar();
+					agregarToken("SI");	
+					agregarToken("#BF");			 
+					}
 ;
 
 ejecucion_iteracion: ejecucion_iteracion sentencia_ejecutable 
@@ -230,7 +304,7 @@ then_seleccion: THEN '{' ejecucion_control '}' ';' {
 								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
 								agregarToken("SI");
-								agregarToken("BI");
+								agregarToken("#BI");
 								}
 								
     | THEN sentencia_ejecutable {
@@ -265,7 +339,7 @@ else_seleccion: ELSE '{' ejecucion_control '}' ';'
 condicion_salto_if: '(' comparacion_bool ')' {
 								apilar();
 								agregarToken("SI");	
-								agregarToken("BF");			 
+								agregarToken("#BF");			 
 								}
 
     | comparacion_bool ')' {agregarError(errores_sintacticos,"Error","Se espera '(' al principio de la comparacion");}
@@ -275,7 +349,7 @@ condicion_salto_if: '(' comparacion_bool ')' {
 ;
 
 comparacion_bool: expresion comparador expresion {addEstructura("comparacion");
-												 agregarToken($2.sval);}
+												  agregarToken($2.sval);;}
 ;
 
 //Tipos de comparadores aceptados por el lenguaje
@@ -393,14 +467,16 @@ impresion: OUT'(' CADENA ')' {
 
 %%
 
+public static boolean declarando = true;
 
 public static final String ERROR = "Error";
 public static final String WARNING = "Warning";
 public static final String NAME_MANGLING_CHAR = ".";
-public static final String nombreVariableContrato = "%";
+public static final String nombreVariableContrato = "@contrato";
 
 public static String funcion_a_asignar = "";
 public static StringBuilder ambito = new StringBuilder();
+
 public static final List<Integer> posicionesPolaca = new ArrayList<>();
 public static final List<String> polaca = new ArrayList<>();
 public static final Stack pila = new Stack();
@@ -408,6 +484,7 @@ private static String tipo;
 
 public static List<String> errores_sintacticos = new ArrayList<>();
 public static final List<String> errores_semanticos = new ArrayList<>();
+
 public static List<Character> buffer = new ArrayList<>();
 public static List<String> estructura = new ArrayList<>();
 public static AnalizadorLexico AL;
@@ -457,6 +534,11 @@ public static void agregarError(List<String> errores, String tipo, String error)
         }
         int linea_actual = AnalizadorLexico.getLineaActual();
         errores.add(tipo + " (Linea " + linea_actual + "): " + error);
+}
+
+public static void agregarErrorSemantico(int linea, String error){
+        errores_compilacion = true;
+        errores_semanticos.add(Parser.ERROR + " (Linea " + linea + "): " + error);
 }
 
 int yylex() {
@@ -546,8 +628,11 @@ private static void salirAmbito(){
 
 //Funcion que chequea si el tipo de parametro es valido para la funcion
 public static boolean chequearParametro(String parametro, String funcion){
-	String tipoParametro = TablaSimbolos.obtenerAtributo(parametro, "tipo");
-	String tipoParametroFuncion = TablaSimbolos.obtenerAtributo(funcion, "tipo_parametro");
+	String punt_parametro = TablaSimbolos.obtenerSimboloAmbito(parametro);
+	String punt_funcion = TablaSimbolos.obtenerSimboloAmbito(funcion);
+	
+	String tipoParametro = TablaSimbolos.obtenerAtributo(punt_parametro, "tipo");
+	String tipoParametroFuncion = TablaSimbolos.obtenerAtributo(punt_funcion, "tipo_parametro");
 	
 	return tipoParametro == tipoParametroFuncion;
 }

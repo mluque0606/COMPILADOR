@@ -1,6 +1,9 @@
 programa_8 {
 	i32 i, j;
 	while(i < 10):(i =: i+1){
-		j =: i * 10;
-	}
+		while(j < 15) : (j =: j + 1){
+			out('hola');
+		};
+	};
+	j =: i;
 };
