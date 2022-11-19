@@ -10,16 +10,16 @@ CORRECIONES:
     		* se invoca a una funci�n y se usa su valor de resultado (hecho)
 	3. BREAK con etiqueta obligatoria (hecho)
 	4. Permitir BREAK CTE dentro del IF 
-	5. Acomodar el metodo chequearParametro()
+	5. Acomodar el metodo chequearParametro(hecho)
 
 GENERAL
--> Polaca dinamica para asignaciones, selecciones, iteracion, impresion e invocacion a funcion.
--> Incroporar tipo, uso y demas atributos a la Tabla de Simbolos.
--> Informar error semantico para: variables no declaradas, variables redeclaradas, funciones no declaradas, funciones redeclaradas y demas cuestiones de alcance.
+(listo) -> Polaca dinamica para asignaciones, selecciones, iteracion, impresion e invocacion a funcion.
+(no anda) -> Incroporar tipo, uso y demas atributos a la Tabla de Simbolos.
+(falta) -> Informar error semantico para: variables no declaradas, variables redeclaradas, funciones no declaradas, funciones redeclaradas y demas cuestiones de alcance.
 	* Reglas de alcance: Se permite mismo nombre de variable, funcion o etiqueta siempre que sea en diferentes ambito, cada declaracion es visible en su ambito o en la anidacion de declaraciones.
--> Informar error semantico si no tiene conversion explicita y son de diferentes tipos (ETAPA 4).
--> Chequear cantidad y tipo de parametros (entre los formales y reales).
--> Pasaje de parametro por copia valor.
+(falta) -> Informar error semantico si no tiene conversion explicita y son de diferentes tipos (ETAPA 4).
+(probar) -> Chequear cantidad y tipo de parametros (entre los formales y reales).
+(listo) -> Pasaje de parametro por copia valor.
 
 PARTICULAR
 -> DISCARD: Si en una sentencia ejecutable aparece discard, descartar el valor de retorno de la funcion.
