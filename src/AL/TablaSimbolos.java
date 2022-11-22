@@ -29,11 +29,11 @@ public class TablaSimbolos {
     }
     
     public static void agregarAtributo(String s, String atributo, String valor) {
-        if (tabla.containsKey(s)) {
-            var a = tabla.get(s);
-            a.agregarAtributo(atributo,valor);
-            tabla.put(s,a);
-        }
+        if(tabla.containsKey(s)) {
+        	var a = tabla.get(s);
+        	a.aggAtributo(atributo, valor);
+        	tabla.put(s, a);
+    	}
         //sino esta, se debe agregar el simbolo y crear el hash con los atributos dados
     }
     
@@ -112,5 +112,11 @@ public class TablaSimbolos {
             return null;
         }*/
     }
+
+	public static void modifySimbolo(String ptr, String string) {
+		Atributo a = tabla.get(ptr);
+		eliminarSimbolo(ptr);
+		tabla.put(string, a);
+	}
 	
 }

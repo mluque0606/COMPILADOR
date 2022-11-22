@@ -1,5 +1,5 @@
 programa_7 {
-	fun f1(i32 x): {
+	fun f1(i32 x): i32{
 		i32 y;
 		y =: 10;
 		while (y < 20) : (y =: y+1){

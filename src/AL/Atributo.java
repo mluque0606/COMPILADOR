@@ -22,7 +22,7 @@ public class Atributo {
         return lexema.getTipo();
     }
 
-    public void agregarAtributo(String key, String value){
+    public void aggAtributo(String key, String value){
         mas.put(key,value);
     }
     

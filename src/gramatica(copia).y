@@ -30,7 +30,7 @@ program: header_program '{' ejecucion '}' ';' {addEstructura("programa");}
 ;
 
 header_program: ID {cambiarAmbito($1.sval);
-					Parser.declarando = false;
+					//Parser.declarando = false;
 					agregarToken (":START");
 					TablaSimbolos.agregarSimb(nombreVariableContrato);
 					TablaSimbolos.agregarAtributo(TablaSimbolos.obtenerSimbolo(nombreVariableContrato), "tipo", TablaTipos.LONG_TYPE);
@@ -39,67 +39,76 @@ header_program: ID {cambiarAmbito($1.sval);
 
 //Reglas de declaraciones y bloques de sentencias
 
-declaracion_variables: tipo lista_variables ';'
+declaracion_variables: tipo lista_variables ';' {
+					asignarTipos($1.sval);
+					}
 
         | lista_variables ';' {agregarError(errores_sintacticos,"Error","Se espera un tipo para declaracion_variable");}
         | lista_variables {agregarError(errores_sintacticos,"Error","Se espera un ';' al final de la declaracion");}
 ;
 
 lista_variables: lista_variables ',' ID { 
-                String simb = TablaSimbolos.obtenerSimbolo($3.sval + Parser.ambito.toString());
-                TablaSimbolos.agregarAtributo(simb, "tipo", tipo);
-                TablaSimbolos.agregarAtributo(simb, "uso", "variable"); }
-        | ID { 
-                String simb = TablaSimbolos.obtenerSimbolo($1.sval + Parser.ambito.toString());
-                TablaSimbolos.agregarAtributo(simb, "tipo", tipo);
-                TablaSimbolos.agregarAtributo(simb, "uso", "variable");
+				var_aux.add($3.sval);
                 }
+        | ID { 
+        		var_aux.add($1.sval);
+               }
 ;
 
 sentencia_declarable: declaracion_variables {addEstructura("declaracion variables");
-											 Parser.declarando = false; }
+											 }
         | funcion {addEstructura("declaracion funcion");
-        		   Parser.declarando = false;}
+        		   }
 ;
 
 funcion: header_funcion ejecucion_funcion {agregarToken(nombreFuncion());
 										   salirAmbito();
-										   Parser.declarando = true;
+										   //Parser.declarando = true;
 										   agregarToken("\\ENDP"); }
+		| header_funcion {agregarError(errores_sintacticos,"Error","Se espera una ejecucion_funcion");}
 ;
 
 //Puede tener o no parametros
 header_funcion: FUN ID '(' lista_parametros ')' ':' tipo {
-						String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
-                        TablaSimbolos.agregarAtributo(simb, "tipo", TablaTipos.FUNC_TYPE);
-                        TablaSimbolos.agregarAtributo(simb, "uso", TablaTipos.FUNC_TYPE);
-                        TablaSimbolos.agregarAtributo(simb, "retorno", tipo);
+						String ptr1 = chequeoAmbito($2.sval + Parser.ambito.toString()); //ACOMODAR AMBITO
+            			TablaSimbolos.agregarAtributo(ptr1,"tipo",$7.sval);
+            			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
+            			cambiarAmbito($2.sval);
+            			procesarParametros(ptr1);
+						//String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
+                        //TablaSimbolos.agregarAtributo(simb, "tipo", TablaTipos.FUNC_TYPE);
+                        //TablaSimbolos.agregarAtributo(simb, "uso", TablaTipos.FUNC_TYPE);
+                        //TablaSimbolos.agregarAtributo(simb, "retorno", tipo);
 
-                        TablaSimbolos.agregarSimb("@ret@" + $2.sval + Parser.ambito.toString());
-                        String simb2 = TablaSimbolos.obtenerSimbolo("@ret@" + $2.sval + Parser.ambito.toString());
-                        TablaSimbolos.agregarAtributo(simb2, "tipo", tipo);
-                        TablaSimbolos.agregarAtributo(simb2, "uso", "variable");
-						
-						cambiarAmbito($2.sval);
+                        //TablaSimbolos.agregarSimb("@ret@" + $2.sval + Parser.ambito.toString());
+                        //String simb2 = TablaSimbolos.obtenerSimbolo("@ret@" + $2.sval + Parser.ambito.toString());
+                        //TablaSimbolos.agregarAtributo(simb2, "tipo", tipo);
+                        //TablaSimbolos.agregarAtributo(simb2, "uso", "variable");
+					
 						agregarToken("!" + nombreFuncion().replace(':', '/'));}
 						
         | FUN ID '(' ')' ':' tipo {
-						String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
-                        TablaSimbolos.agregarAtributo(simb, "tipo", TablaTipos.FUNC_TYPE);
-                        TablaSimbolos.agregarAtributo(simb, "uso", TablaTipos.FUNC_TYPE);
-                        TablaSimbolos.agregarAtributo(simb, "retorno", tipo);
+						String ptr1 = chequeoAmbito($2.sval + Parser.ambito.toString());  //ACOMODAR AMBITO
+            			TablaSimbolos.agregarAtributo(ptr1,"tipo",$6.sval);
+            			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
+            			TablaSimbolos.agregarAtributo(ptr1,"cantidad_parametros","0");
+            			cambiarAmbito($2.sval);
+            			
+						//String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
+                        //TablaSimbolos.agregarAtributo(simb, "tipo", TablaTipos.FUNC_TYPE);
+                        //TablaSimbolos.agregarAtributo(simb, "uso", TablaTipos.FUNC_TYPE);
+                        //TablaSimbolos.agregarAtributo(simb, "retorno", tipo);
 
-                        TablaSimbolos.agregarSimb("@ret@" + $2.sval + Parser.ambito.toString());
-                        String simb2 = TablaSimbolos.obtenerSimbolo("@ret@" + $3.sval + Parser.ambito.toString());
-                        TablaSimbolos.agregarAtributo(simb2, "tipo", tipo);
-                        TablaSimbolos.agregarAtributo(simb2, "uso", "variable");
+                        //TablaSimbolos.agregarSimb("@ret@" + $2.sval + Parser.ambito.toString());
+                        //String simb2 = TablaSimbolos.obtenerSimbolo("@ret@" + $3.sval + Parser.ambito.toString());
+                        //TablaSimbolos.agregarAtributo(simb2, "tipo", tipo);
+                        //TablaSimbolos.agregarAtributo(simb2, "uso", "variable");
 						
-						cambiarAmbito($2.sval);
-						Parser.declarando = false;
+						//Parser.declarando = false;
 						agregarToken("!" + nombreFuncion().replace(':', '/'));}
       
-      	| FUN ID '(' lista_parametros ')' ':'  {agregarError(errores_sintacticos,"Error","Se espera el tipo de retorno de la funcion");}
-      	| FUN ID '(' ')' ':'  {agregarError(errores_sintacticos,"Error","Se espera el tipo de retorno de la funcion");}
+      	//| FUN ID '(' lista_parametros ')' ':'  {agregarError(errores_sintacticos,"Error","Se espera el tipo de retorno de la funcion");}
+      	//| FUN ID '(' ')' ':'  {agregarError(errores_sintacticos,"Error","Se espera el tipo de retorno de la funcion");}
       	| FUN ID '(' lista_parametros ')'  {agregarError(errores_sintacticos,"Error","Se espera : y el tipo de retorno de la funcion");}
         | FUN '(' lista_parametros ')' ':' tipo {agregarError(errores_sintacticos,"Error","Se espera el nombre de la funcion");}
         | FUN '(' ')' ':' tipo {agregarError(errores_sintacticos,"Error","Se espera el nombre de la funcion");}
@@ -113,45 +122,52 @@ lista_parametros: parametro
 ;
 
 parametro: tipo ID {    
-						String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
-                        int primerSeparador = Parser.ambito.toString().indexOf(NAME_MANGLING_CHAR);
-                        int ultimoSeparador = Parser.ambito.toString().lastIndexOf(NAME_MANGLING_CHAR);
-                        String nombre_funcion = Parser.ambito.substring(ultimoSeparador + 1) + Parser.ambito.substring(primerSeparador, ultimoSeparador);
-                        String simbFunc = TablaSimbolos.obtenerSimbolo(nombre_funcion);
+						String ptr1 = chequeoAmbito($2.sval + Parser.ambito.toString()); //ACOMODAR AMBITO
+            			TablaSimbolos.agregarAtributo(ptr1,"tipo",$1.sval);
+            			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de parametro");
+            			par_aux.add(ptr1);
+            			
+						//String simb = TablaSimbolos.obtenerSimbolo($2.sval + Parser.ambito.toString());
+                        //int primerSeparador = Parser.ambito.toString().indexOf(NAME_MANGLING_CHAR);
+                        //int ultimoSeparador = Parser.ambito.toString().lastIndexOf(NAME_MANGLING_CHAR);
+                        //String nombre_funcion = Parser.ambito.substring(ultimoSeparador + 1) + Parser.ambito.substring(primerSeparador, ultimoSeparador);
+                        //String simbFunc = TablaSimbolos.obtenerSimbolo(nombre_funcion);
                         
-                        TablaSimbolos.agregarAtributo(simb, "tipo", tipo);
-                        TablaSimbolos.agregarAtributo(simb, "uso", "parametro");
-                        TablaSimbolos.agregarAtributo(simbFunc, "tipo_parametro", tipo);
+                        //TablaSimbolos.agregarAtributo(simb, "tipo", tipo);
+                        //TablaSimbolos.agregarAtributo(simb, "uso", "parametro");
+                        //TablaSimbolos.agregarAtributo(simbFunc, "tipo_parametro", tipo);
                    }
 
         | ID {agregarError(errores_sintacticos,"Error","Se espera el tipo del parametro");}
         | tipo {agregarError(errores_sintacticos,"Error","Se espera el nombre del parametro");}
 ;
 
-tipo: I32 {tipo = TablaTipos.LONG_TYPE;}
-    | F32 {tipo = TablaTipos.FLOAT_TYPE;}
+tipo: I32 //{tipo = TablaTipos.LONG_TYPE;}
+    | F32 //{tipo = TablaTipos.FLOAT_TYPE;}
     //| FUN {tipo = TablaTipos.FUNC_TYPE;}
 ;
 
 //Puede ser una funcion que solo retorne algo o, con sentencias ejecutables
-ejecucion_funcion: '{' bloque_funcion RETURN '(' expresion ')' ';' '}' ';' {
-                                                                        String simbFunc = TablaSimbolos.obtenerSimbolo(nombreFuncion());
+ejecucion_funcion: '{' bloque_funcion RETURN '(' expresion ')' ';' '}' ';' 
+																		{
+                                                                        /*String simbFunc = TablaSimbolos.obtenerSimbolo(nombreFuncion());
 
                                                                         if (TablaSimbolos.obtenerAtributo(simbFunc, "retorno") == TablaTipos.FUNC_TYPE) {
                                                                                 TablaSimbolos.agregarAtributo(simbFunc, "nombre_retorno", funcion_a_asignar);
                                                                                 funcion_a_asignar = "";  
-                                                                        }
+                                                                        }*/
 																		agregarToken("@ret@" + nombreFuncion());
 																		agregarToken("\\RET");
 																		}
        
-        | '{' RETURN '(' expresion ')' ';' '}' ';' {
-        											String simbFunc = TablaSimbolos.obtenerSimbolo(nombreFuncion());
+        | '{' RETURN '(' expresion ')' ';' '}' ';' 
+        											{
+        											/*String simbFunc = TablaSimbolos.obtenerSimbolo(nombreFuncion());
         																
                                                     if (TablaSimbolos.obtenerAtributo(simbFunc, "retorno").equals(TablaTipos.FUNC_TYPE)) {
                                                     	TablaSimbolos.agregarAtributo(simbFunc, "nombre_retorno", funcion_a_asignar);
                                                         funcion_a_asignar = "";  
-                                                    }
+                                                    }*/
         											agregarToken("@ret@" + nombreFuncion());
 													agregarToken("\\RET");
 													}
@@ -276,7 +292,9 @@ ejecucion_iteracion: ejecucion_iteracion sentencia_ejecutable
 ;
 
 continue: CONTINUE 
-	|CONTINUE ':' ID 
+	|CONTINUE ':' ID {
+					String ptr = chequeoAmbito($3.sval + Parser.ambito.toString()); //ACOMODAR AMBITO
+					}
 ;
 
 break: BREAK CTE 
@@ -348,8 +366,19 @@ condicion_salto_if: '(' comparacion_bool ')' {
     | '(' ')' {agregarError(errores_sintacticos,"Error","Se espera una condicion de comparacion");}
 ;
 
-comparacion_bool: expresion comparador expresion {addEstructura("comparacion");
-												  agregarToken($2.sval);;}
+//CUANDO AGREGO EL COMPARADOR A LA POLACA NO SE AGREGA BIEN
+comparacion_bool: expresion comparador expresion {
+								addEstructura("comparacion");
+								//agregarToken($2.sval);
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+									agregarToken($2.sval);
+        						} else {
+            						agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						}
+        						}
 ;
 
 //Tipos de comparadores aceptados por el lenguaje
@@ -363,13 +392,21 @@ comparador: '>'
 
 //AGREGAR ACCIONES EN LA POLACA PARA EL CASO DE ASIGNACION POR EXPRESION
 asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3.sval);
-												String punt1 = TablaSimbolos.obtenerSimboloAmbito($1.sval + Parser.ambito.toString());
-                                                String punt3 = TablaSimbolos.obtenerSimboloAmbito($3.sval + Parser.ambito.toString());
+ 						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());
+        				String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        				if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+            				agregarToken(ptr1); 
+            				agregarToken("=:");
+        				} else {
+            				agregarError(errores_semanticos,"Error","Tipos no compatibles en la asignacion.");
+        				}
 
-                                                agregarToken(punt1); 
-                                                agregarToken("=:");
-                                                crearPunteroFuncion(punt1, punt3);
-                                                }
+						//String punt1 = TablaSimbolos.obtenerSimboloAmbito($1.sval + Parser.ambito.toString());
+                        //String punt3 = TablaSimbolos.obtenerSimboloAmbito($3.sval + Parser.ambito.toString());
+                        //agregarToken(punt1); 
+                        //agregarToken("=:");
+                        //crearPunteroFuncion(punt1, punt3);
+                        }
                                                 
 	| ID ASIGNACION iteracion_while else_asignacion_iteracion {addEstructura($1.sval + " asignacion " + $3.sval);}
 	
@@ -385,59 +422,193 @@ else_asignacion_iteracion: ELSE CTE
 	| ELSE {agregarError(errores_sintacticos,"Error","Se espera un valor luego de la sentencia ELSE");}
 ;
 
-expresion: expresion '+' termino {agregarToken("+");}
-    | expresion '-' termino {agregarToken("-");}
-    | termino
+expresion: expresion '+' termino {
+								//agregarToken("+");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        						String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+
+        						TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
+       							String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
+        						TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        						if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+            						TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.getAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+									agregarToken("+");
+        						} else {
+            						agregarError(errores_semanticos,"Error","Tipos no compatibles en la suma.");
+        						}
+								}
+    | expresion '-' termino {
+    						//agregarToken("-");
+    						String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+
+        					TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
+       						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
+        					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        					if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+            					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.getAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+								agregarToken("+");
+        					} else {
+            					agregarError(errores_semanticos,"Error","Tipos no compatibles en la resta.");
+        					}
+    						}
+    | termino 
+    //HACER CASOS DE CONVERSION EXPLICITA, CAMBIANDO LOS TIPOS EN LA TS
     | TOF32 '(' expresion '+' termino ')'  {agregarToken("+");}
     | TOF32 '(' expresion '-' termino ')' {agregarToken("-");}
     | TOF32 '(' termino ')'
 ;
 
-termino: termino '*' factor {agregarToken("*");}
-    | termino '/' factor {agregarToken("/");}
+termino: termino '*' factor {
+							//agregarToken("*");
+							String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+
+        					TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
+       						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
+        					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        					if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+            					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.getAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+								agregarToken("*");
+        					} else {
+            					agregarError(errores_semanticos,"Error","Tipos no compatibles en la multiplicacion.");
+        					}
+							}
+    | termino '/' factor {
+    					//agregarToken("/");
+    					String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        				String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+
+        				TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
+       					String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
+        				TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        				if (TablaSimbolos.getAtributo(ptr1,"tipo").equals(TablaSimbolos.getAtributo(ptr2,"tipo"))) {
+            				TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.getAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+							agregarToken("/");
+        				} else {
+            				agregarError(errores_semanticos,"Error","Tipos no compatibles en la division.");
+        				}
+    					}
     | factor
 ;
 
-combinacion_terminales : ID { 
-			String punt1 = TablaSimbolos.obtenerSimboloAmbito($1.sval + Parser.ambito.toString());
-            agregarToken(punt1);
+combinacion_terminales : ID {
+			String ptr = chequeoAmbito($1.sval + Parser.ambito.toString()); //ACOMODAR AMBITO 
+			agregarToken(ptr);
+			
+			//String punt1 = TablaSimbolos.obtenerSimboloAmbito($1.sval + Parser.ambito.toString());
+            //agregarToken(punt1);
              
-            if (TablaSimbolos.obtenerAtributo(punt1, "tipo").equals(TablaTipos.FUNC_TYPE))
-               funcion_a_asignar = punt1;
+            //if (TablaSimbolos.obtenerAtributo(punt1, "tipo").equals(TablaTipos.FUNC_TYPE))
+            //   funcion_a_asignar = punt1;
             }
             
     | CTE {
-			String simb = TablaSimbolos.obtenerSimbolo($1.sval);
-            TablaSimbolos.agregarAtributo(simb, "uso", "constante");
-            agregarToken($1.sval);
+    		String ptr = TablaSimbolos.obtenerSimbolo($1.sval);
+    		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
+			agregarToken(ptr);
+			
+			//String simb = TablaSimbolos.obtenerSimbolo($1.sval);
+            //TablaSimbolos.agregarAtributo(simb, "uso", "constante");
+            //agregarToken($1.sval);
             }
                 
  	|'-' CTE {
- 			String simb = TablaSimbolos.obtenerSimbolo($2.sval);
-            TablaSimbolos.agregarAtributo(simb, "uso", "constante");
-            String simbNeg = negarConstante($2.sval);
-            agregarToken(simbNeg);
+ 			String ptr = TablaSimbolos.obtenerSimbolo($2.sval);
+    		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
+    		String simb = negarConstante(ptr);
+			agregarToken(simb);
+ 			
+ 			//String simb = TablaSimbolos.obtenerSimbolo($2.sval);
+            //TablaSimbolos.agregarAtributo(simb, "uso", "constante");
+            //String simbNeg = negarConstante($2.sval);
+            //agregarToken(simbNeg);
     		 }
 ;
 
 //para cuando llamo a la funcion con el objetivo de utilizar el valor de retorno
 invocacion: ID '(' combinacion_terminales ',' combinacion_terminales ')'  { 
-    					  String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
-                          String punt4 = TablaSimbolos.obtenerSimboloAmbito($4.sval + Parser.ambito.toString());
-                          String punt6 = TablaSimbolos.obtenerSimboloAmbito($6.sval + Parser.ambito.toString());
-                          accionSemanticaFuncion2(punt4, punt6, punt2); 
-                          } 
+							String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString()); //ACOMODAR AMBITO
+        					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        					String ptr3 = TablaSimbolos.obtenerSimbolo($5.sval);
+        					boolean esFuncion = TablaSimbolos.getAtributo(ptr1,"uso").equals("nombre de funcion");
+        					if (esFuncion) {
+            					boolean cantidadParametrosCorrectos = TablaSimbolos.getAtributo(ptr1,"cantidad_parametros").equals("2");
+            					if (cantidadParametrosCorrectos) {
+                					boolean tipoParametro1Correcto = TablaSimbolos.getAtributo(ptr2,"tipo").equals(TablaSimbolos.getAtributo(ptr1,"tipo_parametro1"));
+                					if (tipoParametro1Correcto) {
+                        				boolean tipoParametro2Correcto = TablaSimbolos.getAtributo(ptr3,"tipo").equals(TablaSimbolos.getAtributo(ptr1,"tipo_parametro2"));
+                        				if (tipoParametro2Correcto) {
+                            				agregarToken(ptr1);
+											agregarToken(ptr2);
+											agregarToken(ptr3);
+											agregarToken("#CALL");
+                        				} else {
+                            				agregarError(errores_semanticos,"Error","No concuerda el tipo del segundo parametro de la invocacion con el de la funcion.");
+                        				}
+                					} else {
+                    					agregarError(errores_semanticos,"Error","No concuerda el tipo del primer parametro de la invocacion con el de la funcion.");
+                					}
+            				} else {
+                				agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
+            				}
+        				} else {
+            				agregarError(errores_semanticos,"Error","Funcion no encontrada.");
+        				}
+							
+    					  //String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
+                          //String punt4 = TablaSimbolos.obtenerSimboloAmbito($4.sval + Parser.ambito.toString());
+                          //String punt6 = TablaSimbolos.obtenerSimboloAmbito($6.sval + Parser.ambito.toString());
+                          //accionSemanticaFuncion2(punt4, punt6, punt2); 
+                        } 
                           
     | ID '(' combinacion_terminales ')' { 
-    					  String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
-                          String punt4 = TablaSimbolos.obtenerSimboloAmbito($4.sval + Parser.ambito.toString());
-                          accionSemanticaFuncion1(punt4, punt2); 
-                          }   
+    						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());   //ACOMODAR AMBITO
+        					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        					boolean esFuncion = TablaSimbolos.getAtributo(ptr1,"uso").equals("nombre de funcion");
+        					if (esFuncion) {
+            					boolean cantidadParametrosCorrectos = TablaSimbolos.getAtributo(ptr1,"cantidad_parametros").equals("1");
+            					if (cantidadParametrosCorrectos) {
+                					boolean tipoParametro1Correcto = TablaSimbolos.getAtributo(ptr2,"tipo").equals(TablaSimbolos.getAtributo(ptr1,"tipo_parametro1"));
+                					if (tipoParametro1Correcto) {
+                    					agregarToken(ptr1);
+										agregarToken(ptr2);
+										agregarToken("#CALL");
+                					} else {
+                    					agregarError(errores_semanticos,"Error","No concuerda el tipo del parametro de la invocacion con el de la funcion.");
+                					}
+            					} else {
+                					agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
+            					}
+        					} else {
+            					agregarError(errores_semanticos,"Error","Funcion no encontrada.");
+        					}
+    
+    					  //String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
+                          //String punt4 = TablaSimbolos.obtenerSimboloAmbito($4.sval + Parser.ambito.toString());
+                          //accionSemanticaFuncion1(punt4, punt2); 
+                            }   
                           
     | ID '(' ')' { 
-    					  String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
-                          accionSemanticaFuncion0(punt2); 
-                          }
+    
+    						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());      //ACOMODAR AMBITO
+        					boolean esFuncion = TablaSimbolos.getAtributo(ptr1,"uso").equals("nombre de funcion");
+        					if (esFuncion) {
+            					boolean cantidadParametrosCorrectos = TablaSimbolos.getAtributo(ptr1,"cantidad_parametros").equals("0");
+            					if (cantidadParametrosCorrectos) {
+                					agregarToken(ptr1);
+									agregarToken("#CALL");
+            					} else {
+                					agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
+            					}
+        					} else {
+            					agregarError(errores_semanticos,"Error","Funcion no encontrada.");
+        					}
+        					
+    					  //String punt2 = TablaSimbolos.obtenerSimboloAmbito($2.sval + Parser.ambito.toString());
+                          //accionSemanticaFuncion0(punt2); 
+                            }
+                            
 	//| DISCARD ID '(' combinacion_terminales ',' combinacion_terminales ')' {agregarError(errores_sintacticos,"Error","No puede contener DISCARD, al estar en una asignacion");}
 	//| DISCARD ID '(' combinacion_terminales ')' {agregarError(errores_sintacticos,"Error","No puede contener DISCARD, al estar en una asignacion");}
 	//| DISCARD ID '(' ')'  {agregarError(errores_sintacticos,"Error","No puede contener DISCARD, al estar en una asignacion");}
@@ -467,20 +638,20 @@ impresion: OUT'(' CADENA ')' {
 
 %%
 
-public static boolean declarando = true;
+//public static boolean declarando = true;
 
 public static final String ERROR = "Error";
 public static final String WARNING = "Warning";
-public static final String NAME_MANGLING_CHAR = ".";
+public static final String NAME_MANGLING_CHAR = "@";
 public static final String nombreVariableContrato = "@contrato";
 
-public static String funcion_a_asignar = "";
+//public static String funcion_a_asignar = "";
 public static StringBuilder ambito = new StringBuilder();
 
 public static final List<Integer> posicionesPolaca = new ArrayList<>();
 public static final List<String> polaca = new ArrayList<>();
 public static final Stack pila = new Stack();
-private static String tipo;
+//private static String tipo;
 
 public static List<String> errores_sintacticos = new ArrayList<>();
 public static final List<String> errores_semanticos = new ArrayList<>();
@@ -492,6 +663,9 @@ public static boolean errores_compilacion = false;
 
 private static int contador_cadenas = 0;
 public static final String STRING_CHAR = "&";
+
+public static List<String> var_aux = new ArrayList();
+public static List<String> par_aux = new ArrayList();
 
 void yyerror(String mensaje) {
         // funcion utilizada para imprimir errores que produce yacc
@@ -600,6 +774,7 @@ public void setSintactico(List<Character> buffer, AnalizadorLexico AL) {
     this.buffer = buffer;
 }
 
+/*
 //Funcion recursiva para controlar si un simbolo se encuentra en la tabla de simbolos, teniendo en cuenta su ambito
 public static boolean pertenece(String simbolo){
 	if(!simbolo.contains(NAME_MANGLING_CHAR)){    //si no esta
@@ -614,6 +789,18 @@ public static boolean pertenece(String simbolo){
 		return pertenece(simbolo);
 	}
 }
+*/
+
+//Funcion para asignar tipos a las variables
+private void asignarTipos(String tipo) {
+    for (int i = 0; i < var_aux.size(); i++) {
+        String ptr = TablaSimbolos.obtenerSimbolo(var_aux.get(i));
+        TablaSimbolos.agregarAtributo(ptr,"tipo",tipo);
+        TablaSimbolos.agregarAtributo(ptr,"uso","variable");
+        TablaSimbolos.modifySimbolo(ptr,ptr+Parser.ambito.toString());
+    }
+    var_aux.clear();
+}
 
 //Funcion para indicar que se entro en un nuevo ambito
 private static void cambiarAmbito(String nuevo_ambito){
@@ -626,6 +813,46 @@ private static void salirAmbito(){
 	ambito.delete(index, ambito.length());
 }
 
+private void procesarParametros(String nombre_funcion) {
+    if (par_aux.size() == 2) {
+        TablaSimbolos.agregarAtributo(nombre_funcion,"cantidad_parametros","2");
+        TablaSimbolos.agregarAtributo(nombre_funcion,"tipo_parametro1",TablaSimbolos.getAtributo(par_aux.get(0),"tipo"));
+        TablaSimbolos.agregarAtributo(nombre_funcion,"tipo_parametro2",TablaSimbolos.getAtributo(par_aux.get(1),"tipo"));
+    }
+    if (par_aux.size() == 1) {
+        TablaSimbolos.agregarAtributo(nombre_funcion,"cantidad_parametros","1");
+        TablaSimbolos.agregarAtributo(nombre_funcion,"tipo_parametro1",TablaSimbolos.getAtributo(par_aux.get(0),"tipo"));
+    }
+}
+
+private String auxChequeoAmbito(List<String> amb) {
+    String s = amb.get(0);
+    for (int i = 1; i < amb.size()-1; i++) {
+        s = s + "@" + amb.get(i);
+    }
+    return s;
+}
+
+private String chequeoAmbito(String ptr1) {
+    String s = ptr1;
+    if (TablaSimbolos.obtenerSimbolo(ptr1) == null) {
+        while (true) {
+            List<String> ls = Arrays.asList(s.split("@"));
+            s = auxChequeoAmbito(ls);
+            if (TablaSimbolos.obtenerSimbolo(s) == null) {
+                if (ls.size() == 1) {
+                    return null;
+                }
+            } else {
+                return s;
+            }
+        }
+    } else {
+        return ptr1;
+    }
+}
+
+/*
 //Funcion que chequea si el tipo de parametro es valido para la funcion
 public static boolean chequearParametro(String parametro, String funcion){
 	String punt_parametro = TablaSimbolos.obtenerSimboloAmbito(parametro);
@@ -637,12 +864,17 @@ public static boolean chequearParametro(String parametro, String funcion){
 	return tipoParametro == tipoParametroFuncion;
 }
 
+*/
+
+/*
 public static void accionSemanticaFuncion0(String funcion){
 	agregarToken(funcion_a_asignar);
 	agregarToken(funcion);
 	agregarToken("#CALL");
 }
+*/
 
+/*
 //Verifica el parametro en una llamada a funcion, agrega error en caso de ser incompatibles
 public static void accionSemanticaFuncion1(String parametro, String funcion){
 	if(chequearParametro(parametro, funcion)){
@@ -655,7 +887,9 @@ public static void accionSemanticaFuncion1(String parametro, String funcion){
 		agregarError(errores_semanticos, ERROR, "El tipo del parametro es distinto al provisto");
 	}
 }
+*/
 
+/*
 //Verifica los parametros en una llamada a funcion, agrega error en caso de que sean incompatibles
 public static void accionSemanticaFuncion2(String parametro1, String parametro2, String funcion){
 	if((chequearParametro(parametro1, funcion)) && (chequearParametro(parametro2, funcion))){
@@ -669,6 +903,7 @@ public static void accionSemanticaFuncion2(String parametro1, String parametro2,
 		agregarError(errores_semanticos, ERROR, "El tipo del parametro es distinto al provisto");
 	}
 }
+*/
 
 //Funcion para agregar tokens en la Polaca
 public static void agregarToken(String token){
@@ -681,12 +916,15 @@ public static void apilar(){
 	pila.push(polaca.size());
 }
 
+
 private static String nombreFuncion(){
 	int ultimo_nmc = ambito.lastIndexOf(NAME_MANGLING_CHAR);
 	String nombre_funcion = ambito.substring(ultimo_nmc + 1);
 	return nombre_funcion + ambito.substring(0, ultimo_nmc);
 }
 
+
+/*
 public static void crearPunteroFuncion(String puntero_funcion, String funcion_llamada) {
         //tomo el tipo de dato de funcion_asignada y funcion de la tabla de simbolos
         String puntero_funcion_asignada = TablaSimbolos.obtenerSimbolo(puntero_funcion);
@@ -728,4 +966,4 @@ public static void crearPunteroFuncion(String puntero_funcion, String funcion_ll
 
                 funcion_a_asignar = "";   // reiniciamos la funcion a asignar           
         }
-}
+*/
