@@ -259,8 +259,8 @@ continue: CONTINUE
 					}
 ;
 
-break: BREAK CTE 
-	|BREAK '-' CTE 
+break: BREAK CTE {TablaSimbolos.agregarAtributo("asignacion while", "break", $2.sval);}
+	|BREAK '-' CTE  {TablaSimbolos.agregarAtributo("asignacion while", "break", "-"+$3.sval);}
 ;
 
 seleccion: IF condicion_salto_if then_seleccion_sin_else ENDIF {
@@ -336,44 +336,106 @@ condicion_salto_if: '(' comparacion_bool ')' {
 ;
 
 //CUANDO AGREGO EL COMPARADOR A LA POLACA NO SE AGREGA BIEN
-comparacion_bool: expresion comparador expresion {
+comparacion_bool: expresion '>' expresion {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
         					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
         						//COMO CONTROLO CONVERSIONES EXPLICITAS
-        						if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
-									agregarToken($2.sval);
-        						} else {
-            						agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken(">");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
         						}
+        		
+        		| expresion '<' expresion {
+								addEstructura("comparacion");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken("<");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
         						}
+        		| expresion '=' expresion {
+								addEstructura("comparacion");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken("=");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
+        						}
+        		| expresion MAYOR_IGUAL expresion {
+								addEstructura("comparacion");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken(">=");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
+        						}
+        		| expresion MENOR_IGUAL expresion {
+								addEstructura("comparacion");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken("<=");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
+        						}
+        		| expresion DISTINTO expresion {
+								addEstructura("comparacion");
+								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
+        					 	String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
+        						//COMO CONTROLO CONVERSIONES EXPLICITAS
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+									agregarToken("=!");
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la comparacion.");
+        						//}
+        						}
+        						
 ;
 
 //Tipos de comparadores aceptados por el lenguaje
-comparador: '>'
+/*comparador: '>'
     | '<'
     | '='
     | MAYOR_IGUAL 
     | MENOR_IGUAL 
     | DISTINTO
-;
+;*/
 
 //AGREGAR ACCIONES EN LA POLACA PARA EL CASO DE ASIGNACION POR EXPRESION
 asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3.sval);
  						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());
         				String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
-        				if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+        				//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
             				agregarToken(ptr1); 
             				agregarToken("=:");
-        				} else {
-            				agregarError(errores_semanticos,"Error","Tipos no compatibles en la asignacion.");
-        				}
+        				//} else {
+            			//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la asignacion.");
+        				//}
                         }
                                                 
 	| ID ASIGNACION iteracion_while else_asignacion_iteracion {
 						addEstructura($1.sval + " asignacion " + $3.sval);
 						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());
-						//QUE MAS HAGO??
+						if (TablaSimbolos.obtenerSimbolo("asignacion while") == null){
+							TablaSimbolos.agregarSimbolo("asignacion while", new Lexema("asignacion while"));
+						}
+						if((!TablaSimbolos.obtenerAtributo(ptr1, "tipo").equals(TablaSimbolos.obtenerAtributo("asignacion while", "break"))) || (!TablaSimbolos.obtenerAtributo(ptr1, "tipo").equals(TablaSimbolos.obtenerAtributo("asignacion while", "else")))) {
+							{agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Tipos incompatibles en la asignacion por while");}
+						}
 						}
 	
 	| ID ASIGNACION iteracion_while {agregarError(errores_sintacticos,"Error","Se espera un else luego del while");}
@@ -382,8 +444,8 @@ asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3
 	//| ASIGNACION {agregarError(errores_sintacticos,"Error","Se espera expresion antes y despues de la asignacion");}
 ;
 
-else_asignacion_iteracion: ELSE CTE
-	| ELSE '-' CTE
+else_asignacion_iteracion: ELSE CTE {TablaSimbolos.agregarAtributo("asignacion while", "else", $2.sval);}
+	| ELSE '-' CTE {TablaSimbolos.agregarAtributo("asignacion while", "else", "-"+$3.sval);}
 	
 	| ELSE {agregarError(errores_sintacticos,"Error","Se espera un valor luego de la sentencia ELSE");}
 ;
@@ -395,12 +457,12 @@ expresion: expresion '+' termino {
         						TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
        							String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
         						TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
-        						if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+        						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
             						TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 									agregarToken("+");
-        						} else {
-            						agregarError(errores_semanticos,"Error","Tipos no compatibles en la suma.");
-        						}
+        						//} else {
+            					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la suma.");
+        						//}
 								}
     | expresion '-' termino {
     						String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
@@ -409,12 +471,12 @@ expresion: expresion '+' termino {
         					TablaSimbolos.agregarSimbolo($1.sval+"-"+$3.sval, new Lexema($1.sval+"-"+$3.sval));
        						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"-"+$3.sval);
         					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
-        					if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+        					//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
             					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 								agregarToken("-");
-        					} else {
-            					agregarError(errores_semanticos,"Error","Tipos no compatibles en la resta.");
-        					}
+        					//} else {
+            				//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la resta.");
+        					//}
     						}
     | termino
      
@@ -453,12 +515,12 @@ termino: termino '*' factor {
         					TablaSimbolos.agregarSimbolo($1.sval+"*"+$3.sval, new Lexema($1.sval+"*"+$3.sval));
        						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"*"+$3.sval);
         					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
-        					if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+        					//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
             					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 								agregarToken("*");
-        					} else {
-            					agregarError(errores_semanticos,"Error","Tipos no compatibles en la multiplicacion.");
-        					}
+        					//} else {
+            				//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la multiplicacion.");
+        					//}
 							}
     | termino '/' factor {
     					String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
@@ -467,12 +529,12 @@ termino: termino '*' factor {
         				TablaSimbolos.agregarSimbolo($1.sval+"/"+$3.sval, new Lexema($1.sval+"/"+$3.sval));
        					String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"/"+$3.sval);
         				TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
-        				if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
+        				//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
             				TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 							agregarToken("/");
-        				} else {
-            				agregarError(errores_semanticos,"Error","Tipos no compatibles en la division.");
-        				}
+        				//} else {
+            			//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la division.");
+        				//}
     					}
     | factor
 ;

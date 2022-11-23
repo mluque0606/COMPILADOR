@@ -31,10 +31,7 @@ public class TablaSimbolos {
     public static void agregarAtributo(String s, String atributo, String valor) {
         if(tabla.containsKey(s)) {
         	var a = tabla.get(s);
-        	System.out.println("Simbolo donde se agrega " + s);
-        	System.out.println("Atributo a agregar " + atributo + ", " + valor);
         	a.aggAtributo(atributo, valor);
-        	System.out.println("Imprimo atributos despues de agregar " + a.toString());
         	tabla.put(s, a);
     	}
         //sino esta, se debe agregar el simbolo y crear el hash con los atributos dados

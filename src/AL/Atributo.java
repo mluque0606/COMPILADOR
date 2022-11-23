@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Atributo {
 	Lexema lexema;
-    static Map<String,String> mas = new HashMap<>();
+    Map<String,String> mas = new HashMap<>();
 
     public Atributo(Lexema lexema) {
         this.lexema = lexema;
@@ -26,7 +26,7 @@ public class Atributo {
         mas.put(key,value);
     }
     
-    public static HashMap<String, String> getMas(){
+    public HashMap<String, String> getMas(){
     	return (HashMap<String, String>) mas;
     }
     
