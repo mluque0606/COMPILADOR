@@ -1,0 +1,10 @@
+program_6 {
+	i32 a, number, i;
+	i =: 0;
+	number =: 7;
+	a =: while (i<10) : (i =: i+1) {
+		if (i = number) then {
+			i =: 0;
+		}; end_if;
+	}; else ;
+}; 

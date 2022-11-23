@@ -676,7 +676,7 @@ final static String yyrule[] = {
 "impresion : OUT CADENA",
 };
 
-//#line 662 "gramatica(copia).y"
+//#line 676 "gramatica(copia).y"
 
 public static final String ERROR = "Error";
 public static final String WARNING = "Warning";
@@ -831,9 +831,15 @@ public static boolean pertenece(String simbolo){
 private void asignarTipos(String tipo) {
     for (int i = 0; i < var_aux.size(); i++) {
         String ptr = TablaSimbolos.obtenerSimbolo(var_aux.get(i));
-        TablaSimbolos.agregarAtributo(ptr,"tipo",tipo);
-        TablaSimbolos.agregarAtributo(ptr,"uso","variable");
-        TablaSimbolos.modifySimbolo(ptr,ptr+Parser.ambito.toString());
+        String ptr2 = ptr+Parser.ambito.toString();
+        if (TablaSimbolos.obtenerSimbolo(ptr2) == null) {
+        	TablaSimbolos.modifySimbolo(ptr,ptr2);
+        	TablaSimbolos.agregarAtributo(ptr2,"tipo",tipo);
+        	TablaSimbolos.agregarAtributo(ptr,"uso","variable");
+    	}
+    	else{
+    		agregarErrorSemantico(AnalizadorLexico.getLineaActual(), "Redeclaracion de la variable " + ptr2);
+    	}
     }
     var_aux.clear();
 }
@@ -859,6 +865,7 @@ private void procesarParametros(String nombre_funcion) {
         TablaSimbolos.agregarAtributo(nombre_funcion,"cantidad_parametros","1");
         TablaSimbolos.agregarAtributo(nombre_funcion,"tipo_parametro1",TablaSimbolos.obtenerAtributo(par_aux.get(0),"tipo"));
     }
+    par_aux.clear();
 }
 
 private String auxChequeoAmbito(List<String> amb) {
@@ -877,7 +884,6 @@ private String chequeoAmbito(String ptr1) {
             s = auxChequeoAmbito(ls);
             if (TablaSimbolos.obtenerSimbolo(s) == null) {
                 if (ls.size() == 1) {
-                    agregarErrorSemantico(AnalizadorLexico.getLineaActual(), "La variable no fue declarada o no esta al alcance");
                     return null;
                 }
             } else {
@@ -906,7 +912,7 @@ private static String nombreFuncion(){
 	String nombre_funcion = ambito.substring(ultimo_nmc + 1);
 	return nombre_funcion + ambito.substring(0, ultimo_nmc);
 }
-//#line 836 "Parser.java"
+//#line 842 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1132,126 +1138,128 @@ case 14:
 break;
 case 15:
 //#line 69 "gramatica(copia).y"
-{
-						String ptr1 = chequeoAmbito(val_peek(5).sval + Parser.ambito.toString());
-            			if(ptr1 != null){
-            				TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(0).sval);
-            				TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
-            				cambiarAmbito(val_peek(5).sval);
-            				procesarParametros(ptr1);
+{						
+						if (TablaSimbolos.obtenerSimbolo(val_peek(5).sval+ Parser.ambito.toString()) == null) {
+                			TablaSimbolos.modifySimbolo(val_peek(5).sval, val_peek(5).sval + Parser.ambito.toString());
+                			String ptr1 = chequeoAmbito(val_peek(5).sval + Parser.ambito.toString());
+                			TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(0).sval);
+                			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
+							cambiarAmbito(val_peek(5).sval);                			
+							procesarParametros(ptr1);
+                			agregarToken("!" + nombreFuncion().replace(':', '/'));
+            			} else {
+                			agregarError(errores_semanticos,"Error","Redeclaraion de la funcion " + val_peek(5).sval+ Parser.ambito.toString());
             			}
-					
-						agregarToken("!" + nombreFuncion().replace(':', '/'));
 						}
 break;
 case 16:
-//#line 81 "gramatica(copia).y"
-{
-						String ptr1 = chequeoAmbito(val_peek(4).sval + Parser.ambito.toString());
-            			if (ptr1 != null){
-            				TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(0).sval);
-            				TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
-            				TablaSimbolos.agregarAtributo(ptr1,"cantidad_parametros","0");
-            				cambiarAmbito(val_peek(4).sval);
-						}
-						agregarToken("!" + nombreFuncion().replace(':', '/'));
+//#line 83 "gramatica(copia).y"
+{						
+						if (TablaSimbolos.obtenerSimbolo(val_peek(4).sval+ Parser.ambito.toString()) == null) {
+                			TablaSimbolos.modifySimbolo(val_peek(4).sval, val_peek(4).sval + Parser.ambito.toString());
+                			String ptr1 = chequeoAmbito(val_peek(4).sval + Parser.ambito.toString());
+                			TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(0).sval);
+                			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
+							cambiarAmbito(val_peek(4).sval);                			
+                			agregarToken("!" + nombreFuncion().replace(':', '/'));
+            			} else {
+                			agregarError(errores_semanticos,"Error","Redeclaraion de la funcion " + val_peek(4).sval+ Parser.ambito.toString());
+            			}
 						}
 break;
 case 17:
-//#line 94 "gramatica(copia).y"
+//#line 98 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera : y el tipo de retorno de la funcion");}
 break;
 case 18:
-//#line 95 "gramatica(copia).y"
+//#line 99 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera el nombre de la funcion");}
 break;
 case 19:
-//#line 96 "gramatica(copia).y"
+//#line 100 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera el nombre de la funcion");}
 break;
 case 20:
-//#line 97 "gramatica(copia).y"
+//#line 101 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera que los parametros esten entre parentesis");}
 break;
 case 21:
-//#line 98 "gramatica(copia).y"
+//#line 102 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Aunque la funcion no tenga parametros debe tener los parentesis");}
 break;
 case 24:
-//#line 106 "gramatica(copia).y"
+//#line 110 "gramatica(copia).y"
 {    
-						String ptr1 = chequeoAmbito(val_peek(0).sval + Parser.ambito.toString());
-            			if (ptr1 != null){
-            				TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(1).sval);
-            				TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de parametro");
-            				par_aux.add(ptr1);
-            			}
+           		String ptr1 = chequeoAmbito(val_peek(0).sval + Parser.ambito.toString());
+            	TablaSimbolos.agregarAtributo(ptr1,"tipo",val_peek(1).sval);
+            	TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de parametro");
+            	par_aux.add(ptr1);
                    }
 break;
 case 25:
-//#line 115 "gramatica(copia).y"
+//#line 117 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera el tipo del parametro");}
 break;
 case 26:
-//#line 116 "gramatica(copia).y"
+//#line 118 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera el nombre del parametro");}
 break;
 case 29:
-//#line 124 "gramatica(copia).y"
+//#line 126 "gramatica(copia).y"
 {
 																		agregarToken("@ret@" + nombreFuncion());
 																		agregarToken("\\RET");
 																		}
 break;
 case 30:
-//#line 129 "gramatica(copia).y"
+//#line 131 "gramatica(copia).y"
 {
         											agregarToken("@ret@" + nombreFuncion());
 													agregarToken("\\RET");
 													}
 break;
 case 31:
-//#line 134 "gramatica(copia).y"
+//#line 136 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error", "No puede haber mas sentencias despues del RETURN, debe ser lo ultimo");}
 break;
 case 32:
-//#line 135 "gramatica(copia).y"
+//#line 137 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error", "Se espera que la funcion retorne algun valor");}
 break;
 case 33:
-//#line 136 "gramatica(copia).y"
+//#line 138 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error", "Se espera que la funcion retorne algun valor");}
 break;
 case 34:
-//#line 137 "gramatica(copia).y"
+//#line 139 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error", "Se espera que tenga una expresion el return");}
 break;
 case 35:
-//#line 138 "gramatica(copia).y"
+//#line 140 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error", "Se espera que tenga una expresion el return");}
 break;
 case 45:
-//#line 159 "gramatica(copia).y"
+//#line 161 "gramatica(copia).y"
 {addEstructura("if");}
 break;
 case 46:
-//#line 160 "gramatica(copia).y"
+//#line 162 "gramatica(copia).y"
 {addEstructura("impresion");}
 break;
 case 47:
-//#line 161 "gramatica(copia).y"
+//#line 163 "gramatica(copia).y"
 {addEstructura("while");}
 break;
 case 48:
-//#line 162 "gramatica(copia).y"
+//#line 164 "gramatica(copia).y"
 {addEstructura("invocacion con discard");}
 break;
 case 49:
-//#line 163 "gramatica(copia).y"
+//#line 165 "gramatica(copia).y"
 {addEstructura("error");}
 break;
 case 51:
-//#line 170 "gramatica(copia).y"
+//#line 172 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1262,7 +1270,7 @@ case 51:
 																												}
 break;
 case 52:
-//#line 178 "gramatica(copia).y"
+//#line 180 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1273,7 +1281,7 @@ case 52:
 																												}
 break;
 case 53:
-//#line 186 "gramatica(copia).y"
+//#line 188 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1284,7 +1292,7 @@ case 53:
 																												}
 break;
 case 54:
-//#line 194 "gramatica(copia).y"
+//#line 196 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1295,7 +1303,7 @@ case 54:
 																												}
 break;
 case 55:
-//#line 202 "gramatica(copia).y"
+//#line 204 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1306,7 +1314,7 @@ case 55:
 																												}
 break;
 case 56:
-//#line 210 "gramatica(copia).y"
+//#line 212 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1317,7 +1325,7 @@ case 56:
 																												}
 break;
 case 57:
-//#line 218 "gramatica(copia).y"
+//#line 220 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1328,7 +1336,7 @@ case 57:
 																												}
 break;
 case 58:
-//#line 226 "gramatica(copia).y"
+//#line 228 "gramatica(copia).y"
 { 
  																												/*DESAPILO+COMPLETO PASO INCOMPLETO*/
 																												/*DESAPILO PASO DE INICIO*/
@@ -1339,21 +1347,21 @@ case 58:
 																												}
 break;
 case 59:
-//#line 235 "gramatica(copia).y"
+//#line 237 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera una comparacion_bool ");}
 break;
 case 60:
-//#line 236 "gramatica(copia).y"
+//#line 238 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera una asignacion dentro de los '(' ')'  ");}
 break;
 case 61:
-//#line 239 "gramatica(copia).y"
+//#line 241 "gramatica(copia).y"
 { 
 					/*APILAR PASO INICIAL*/
 					apilar(); }
 break;
 case 62:
-//#line 244 "gramatica(copia).y"
+//#line 246 "gramatica(copia).y"
 { 
 					/*GENERO BF INCOMPLETA Y APILO PASO INCOMPLETO*/
 					apilar();
@@ -1362,61 +1370,61 @@ case 62:
 					}
 break;
 case 66:
-//#line 257 "gramatica(copia).y"
+//#line 259 "gramatica(copia).y"
 {
 					String ptr = chequeoAmbito(val_peek(0).sval + Parser.ambito.toString());
 					}
 break;
 case 67:
-//#line 262 "gramatica(copia).y"
+//#line 264 "gramatica(copia).y"
 {TablaSimbolos.agregarAtributo("asignacion while", "break", val_peek(0).sval);}
 break;
 case 68:
-//#line 263 "gramatica(copia).y"
+//#line 265 "gramatica(copia).y"
 {TablaSimbolos.agregarAtributo("asignacion while", "break", "-"+val_peek(0).sval);}
 break;
 case 69:
-//#line 266 "gramatica(copia).y"
+//#line 268 "gramatica(copia).y"
 {
 									polaca.set((int)pila.pop(), Integer.toString(polaca.size()));
 									}
 break;
 case 70:
-//#line 270 "gramatica(copia).y"
+//#line 272 "gramatica(copia).y"
 {
 									polaca.set((int)pila.pop(), Integer.toString(polaca.size()+1));
 									}
 break;
 case 71:
-//#line 274 "gramatica(copia).y"
+//#line 276 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se esperan un THEN");}
 break;
 case 72:
-//#line 275 "gramatica(copia).y"
+//#line 277 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera un ELSE");}
 break;
 case 73:
-//#line 276 "gramatica(copia).y"
-{agregarError(errores_sintacticos,"Error","Se espera bloque de sentencias luego del THEN");}
-break;
-case 74:
-//#line 277 "gramatica(copia).y"
-{agregarError(errores_sintacticos,"Error","Se espera bloque de sentencias luego del ELSE");}
-break;
-case 75:
 //#line 278 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera bloque de sentencias luego del THEN");}
 break;
-case 76:
+case 74:
 //#line 279 "gramatica(copia).y"
+{agregarError(errores_sintacticos,"Error","Se espera bloque de sentencias luego del ELSE");}
+break;
+case 75:
+//#line 280 "gramatica(copia).y"
+{agregarError(errores_sintacticos,"Error","Se espera bloque de sentencias luego del THEN");}
+break;
+case 76:
+//#line 281 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera END_IF al final");}
 break;
 case 77:
-//#line 280 "gramatica(copia).y"
+//#line 282 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera END_IF al final");}
 break;
 case 78:
-//#line 283 "gramatica(copia).y"
+//#line 285 "gramatica(copia).y"
 {
 								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
@@ -1425,7 +1433,7 @@ case 78:
 								}
 break;
 case 79:
-//#line 290 "gramatica(copia).y"
+//#line 292 "gramatica(copia).y"
 {
 								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
@@ -1434,7 +1442,7 @@ case 79:
 								}
 break;
 case 80:
-//#line 297 "gramatica(copia).y"
+//#line 299 "gramatica(copia).y"
 {
 								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
 								apilar();
@@ -1443,47 +1451,47 @@ case 80:
 								}
 break;
 case 81:
-//#line 304 "gramatica(copia).y"
+//#line 306 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera THEN antes de { ");}
 break;
 case 82:
-//#line 305 "gramatica(copia).y"
+//#line 307 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera THEN antes de la sentencia ejecutable");}
 break;
 case 83:
-//#line 306 "gramatica(copia).y"
+//#line 308 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera '}' luego de las sentencias del THEN");}
 break;
 case 84:
-//#line 307 "gramatica(copia).y"
+//#line 309 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera un '{' para comenzar el THEN");}
 break;
 case 87:
-//#line 313 "gramatica(copia).y"
+//#line 315 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera THEN antes de { ");}
 break;
 case 88:
-//#line 314 "gramatica(copia).y"
+//#line 316 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera THEN antes de la sentencia ejecutable");}
 break;
 case 89:
-//#line 315 "gramatica(copia).y"
+//#line 317 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera '}' luego de las sentencias del THEN");}
 break;
 case 90:
-//#line 316 "gramatica(copia).y"
+//#line 318 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera un '{' para comenzar el THEN");}
 break;
 case 93:
-//#line 322 "gramatica(copia).y"
+//#line 324 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera sentencias dentro del cuerpo del ELSE");}
 break;
 case 94:
-//#line 323 "gramatica(copia).y"
+//#line 325 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera '{' luego del ELSE");}
 break;
 case 95:
-//#line 326 "gramatica(copia).y"
+//#line 328 "gramatica(copia).y"
 {
 								apilar();
 								agregarToken("SI");	
@@ -1491,23 +1499,23 @@ case 95:
 								}
 break;
 case 96:
-//#line 332 "gramatica(copia).y"
+//#line 334 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera '(' al principio de la comparacion");}
 break;
 case 97:
-//#line 333 "gramatica(copia).y"
+//#line 335 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera ')' al final de la comparacion");}
 break;
 case 98:
-//#line 334 "gramatica(copia).y"
+//#line 336 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera que la comparacion se encuentre entre parentesis");}
 break;
 case 99:
-//#line 335 "gramatica(copia).y"
+//#line 337 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera una condicion de comparacion");}
 break;
 case 100:
-//#line 339 "gramatica(copia).y"
+//#line 341 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1521,7 +1529,7 @@ case 100:
         						}
 break;
 case 101:
-//#line 351 "gramatica(copia).y"
+//#line 353 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1535,7 +1543,7 @@ case 101:
         						}
 break;
 case 102:
-//#line 362 "gramatica(copia).y"
+//#line 364 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1549,7 +1557,7 @@ case 102:
         						}
 break;
 case 103:
-//#line 373 "gramatica(copia).y"
+//#line 375 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1563,7 +1571,7 @@ case 103:
         						}
 break;
 case 104:
-//#line 384 "gramatica(copia).y"
+//#line 386 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1577,7 +1585,7 @@ case 104:
         						}
 break;
 case 105:
-//#line 395 "gramatica(copia).y"
+//#line 397 "gramatica(copia).y"
 {
 								addEstructura("comparacion");
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
@@ -1591,20 +1599,19 @@ case 105:
         						}
 break;
 case 106:
-//#line 419 "gramatica(copia).y"
+//#line 421 "gramatica(copia).y"
 {addEstructura(val_peek(2).sval + " asignacion " + val_peek(0).sval);
  						String ptr1 = chequeoAmbito(val_peek(2).sval + Parser.ambito.toString());
-        				String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
-        				/*if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {*/
-            				agregarToken(ptr1); 
+        				if (TablaSimbolos.obtenerAtributo(ptr1,"uso") == "constante") {
+            				agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Se esta queriendo modificar la constante " + ptr1);
+        				} else {
+							agregarToken(ptr1); 
             				agregarToken("=:");
-        				/*} else {*/
-            			/*	agregarError(errores_semanticos,"Error","Tipos no compatibles en la asignacion.");*/
-        				/*}*/
+        				}
                         }
 break;
 case 107:
-//#line 430 "gramatica(copia).y"
+//#line 431 "gramatica(copia).y"
 {
 						addEstructura(val_peek(3).sval + " asignacion " + val_peek(1).sval);
 						String ptr1 = chequeoAmbito(val_peek(3).sval + Parser.ambito.toString());
@@ -1617,23 +1624,23 @@ case 107:
 						}
 break;
 case 108:
-//#line 441 "gramatica(copia).y"
+//#line 442 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera un else luego del while");}
 break;
 case 109:
-//#line 447 "gramatica(copia).y"
+//#line 448 "gramatica(copia).y"
 {TablaSimbolos.agregarAtributo("asignacion while", "else", val_peek(0).sval);}
 break;
 case 110:
-//#line 448 "gramatica(copia).y"
+//#line 449 "gramatica(copia).y"
 {TablaSimbolos.agregarAtributo("asignacion while", "else", "-"+val_peek(0).sval);}
 break;
 case 111:
-//#line 450 "gramatica(copia).y"
+//#line 451 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera un valor luego de la sentencia ELSE");}
 break;
 case 112:
-//#line 453 "gramatica(copia).y"
+//#line 454 "gramatica(copia).y"
 {
 								String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
         						String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
@@ -1650,7 +1657,7 @@ case 112:
 								}
 break;
 case 113:
-//#line 467 "gramatica(copia).y"
+//#line 468 "gramatica(copia).y"
 {
     						String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
         					String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
@@ -1667,7 +1674,7 @@ case 113:
     						}
 break;
 case 115:
-//#line 483 "gramatica(copia).y"
+//#line 484 "gramatica(copia).y"
 {
     						String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(3).sval);
     						String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(1).sval);
@@ -1681,7 +1688,7 @@ case 115:
     						}
 break;
 case 116:
-//#line 494 "gramatica(copia).y"
+//#line 495 "gramatica(copia).y"
 {
     						String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(3).sval);
     						String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(1).sval);
@@ -1695,14 +1702,14 @@ case 116:
     						}
 break;
 case 117:
-//#line 505 "gramatica(copia).y"
+//#line 506 "gramatica(copia).y"
 {
     						String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(1).sval);
     						TablaSimbolos.agregarAtributo(ptr1, "tipo", TablaTipos.FLOAT_TYPE);
     						}
 break;
 case 118:
-//#line 511 "gramatica(copia).y"
+//#line 512 "gramatica(copia).y"
 {
 							String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
         					String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
@@ -1719,7 +1726,7 @@ case 118:
 							}
 break;
 case 119:
-//#line 525 "gramatica(copia).y"
+//#line 526 "gramatica(copia).y"
 {
     					String ptr1 = TablaSimbolos.obtenerSimbolo(val_peek(2).sval);
         				String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
@@ -1736,114 +1743,127 @@ case 119:
     					}
 break;
 case 121:
-//#line 542 "gramatica(copia).y"
+//#line 543 "gramatica(copia).y"
 {
 			String ptr = chequeoAmbito(val_peek(0).sval + Parser.ambito.toString());
-			agregarToken(ptr);
+			if (ptr != null) {
+				agregarToken(ptr);
+            } else {
+            	agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Variable " + val_peek(0).sval + "no encontrada");
+            }
             }
 break;
 case 122:
-//#line 547 "gramatica(copia).y"
+//#line 552 "gramatica(copia).y"
 {
     		String ptr = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
-    		if(ptr != null){
-    			TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
-			}
+    		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
 			agregarToken(ptr);
             }
 break;
 case 123:
-//#line 555 "gramatica(copia).y"
+//#line 558 "gramatica(copia).y"
 {
  			String ptr = TablaSimbolos.obtenerSimbolo(val_peek(0).sval);
-    		if (ptr != null){
-    			TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
-    			String simb = negarConstante(ptr);
-    			agregarToken(simb);
-			}
+    		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
+    		String simb = negarConstante(ptr);
+    		agregarToken(simb);
     		}
 break;
 case 124:
-//#line 566 "gramatica(copia).y"
+//#line 567 "gramatica(copia).y"
 { 
 							String ptr1 = chequeoAmbito(val_peek(5).sval + Parser.ambito.toString());
         					String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(3).sval);
         					String ptr3 = TablaSimbolos.obtenerSimbolo(val_peek(1).sval);
-        					boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
-        					if (esFuncion) {
-            					boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("2");
-            					if (cantidadParametrosCorrectos) {
-                					boolean tipoParametro1Correcto = TablaSimbolos.obtenerAtributo(ptr2,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro1"));
-                					if (tipoParametro1Correcto) {
-                        				boolean tipoParametro2Correcto = TablaSimbolos.obtenerAtributo(ptr3,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro2"));
-                        				if (tipoParametro2Correcto) {
-                            				agregarToken(ptr1);
-											agregarToken(ptr2);
-											agregarToken(ptr3);
-											agregarToken("#CALL");
-                        				} else {
-                            				agregarError(errores_semanticos,"Error","No concuerda el tipo del segundo parametro de la invocacion con el de la funcion.");
-                        				}
-                					} else {
-                    					agregarError(errores_semanticos,"Error","No concuerda el tipo del primer parametro de la invocacion con el de la funcion.");
-                					}
-            				} else {
-                				agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
-            				}
-        				} else {
-            				agregarError(errores_semanticos,"Error","Funcion no encontrada.");
-        				}
-                        }
+        					if(ptr1 != null){
+        						boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
+        						if (esFuncion) {
+            						boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("2");
+            						if (cantidadParametrosCorrectos) {
+                						boolean tipoParametro1Correcto = TablaSimbolos.obtenerAtributo(ptr2,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro1"));
+                						if (tipoParametro1Correcto) {
+                        					boolean tipoParametro2Correcto = TablaSimbolos.obtenerAtributo(ptr3,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro2"));
+                        					if (tipoParametro2Correcto) {
+                            					agregarToken(ptr1);
+												agregarToken(ptr2);
+												agregarToken(ptr3);
+												agregarToken("#CALL");
+                        					} else {
+                            					agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"No concuerda el tipo del segundo parametro de la invocacion con el de la funcion.");
+                        					}
+                						} else {
+                    						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"No concuerda el tipo del primer parametro de la invocacion con el de la funcion.");
+                						}
+            						} else {
+                						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Cantidad de parametros incorrectos en la funcion.");
+            						}
+        						} else {
+            						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
+        						}
+        					} else {
+            					agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
+        					}
+        				
+                        	}
 break;
 case 125:
-//#line 596 "gramatica(copia).y"
+//#line 602 "gramatica(copia).y"
 { 
     						String ptr1 = chequeoAmbito(val_peek(3).sval + Parser.ambito.toString());
         					String ptr2 = TablaSimbolos.obtenerSimbolo(val_peek(1).sval);
-        					boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
-        					if (esFuncion) {
-            					boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("1");
-            					if (cantidadParametrosCorrectos) {
-                					boolean tipoParametro1Correcto = TablaSimbolos.obtenerAtributo(ptr2,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro1"));
-                					if (tipoParametro1Correcto) {
-                    					agregarToken(ptr1);
-										agregarToken(ptr2);
-										agregarToken("#CALL");
-                					} else {
-                    					agregarError(errores_semanticos,"Error","No concuerda el tipo del parametro de la invocacion con el de la funcion.");
-                					}
-            					} else {
-                					agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
-            					}
+        					if (ptr1 != null) {
+        						boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
+        						if (esFuncion) {
+            						boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("1");
+            						if (cantidadParametrosCorrectos) {
+                						boolean tipoParametro1Correcto = TablaSimbolos.obtenerAtributo(ptr2,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr1,"tipo_parametro1"));
+                						if (tipoParametro1Correcto) {
+                    						agregarToken(ptr1);
+											agregarToken(ptr2);
+											agregarToken("#CALL");
+                						} else {
+                    						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"No concuerda el tipo del parametro de la invocacion con el de la funcion.");
+                						}
+            						} else {
+                						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Cantidad de parametros incorrectos en la funcion.");
+            						}
+        						} else {
+            						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
+        						}
         					} else {
-            					agregarError(errores_semanticos,"Error","Funcion no encontrada.");
+            					agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
         					}
                             }
 break;
 case 126:
-//#line 619 "gramatica(copia).y"
+//#line 629 "gramatica(copia).y"
 { 
     
     						String ptr1 = chequeoAmbito(val_peek(2).sval + Parser.ambito.toString());
-        					boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
-        					if (esFuncion) {
-            					boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("0");
-            					if (cantidadParametrosCorrectos) {
-                					agregarToken(ptr1);
-									agregarToken("#CALL");
-            					} else {
-                					agregarError(errores_semanticos,"Error","Cantidad de parametros incorrectos en la funcion.");
-            					}
+        					if (ptr1 != null) {
+        						boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
+        						if (esFuncion) {
+            						boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("0");
+            						if (cantidadParametrosCorrectos) {
+                						agregarToken(ptr1);
+										agregarToken("#CALL");
+            						} else {
+                						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Cantidad de parametros incorrectos en la funcion.");
+            						}
+        						} else {
+            						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
+        						}
         					} else {
-            					agregarError(errores_semanticos,"Error","Funcion no encontrada.");
-        					}
+            					agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Funcion no encontrada.");
+        					}        						
                             }
 break;
 case 129:
-//#line 645 "gramatica(copia).y"
+//#line 659 "gramatica(copia).y"
 {       
                                 String nombre = STRING_CHAR + "cadena" + String.valueOf(contador_cadenas);
-                                TablaSimbolos.agregarSimb(nombre);
+                                TablaSimbolos.agregarSimbolo(nombre, new Lexema(nombre));
                                 String simb = TablaSimbolos.obtenerSimbolo(nombre);
                                 TablaSimbolos.agregarAtributo(simb, "valor", val_peek(1).sval);
                                 TablaSimbolos.agregarAtributo(simb, "tipo", "String");
@@ -1852,18 +1872,18 @@ case 129:
                                 }
 break;
 case 130:
-//#line 655 "gramatica(copia).y"
+//#line 669 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera una cadena dentro del OUT");}
 break;
 case 131:
-//#line 656 "gramatica(copia).y"
+//#line 670 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera una cadena entre parentesis luego del OUT");}
 break;
 case 132:
-//#line 657 "gramatica(copia).y"
+//#line 671 "gramatica(copia).y"
 {agregarError(errores_sintacticos,"Error","Se espera que la cadena entre parentesis");}
 break;
-//#line 1788 "Parser.java"
+//#line 1808 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
