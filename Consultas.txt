@@ -1,0 +1,10 @@
+1. Cuando pongo $2.sval en los comparadores no los muestra.
+2. Algunos errores de los que nos pidio tiran conflictos.
+3. Ayuda para crear el .jar
+4. Que pasa con la Tabla de Simbolos
+5. Como controlar que se puedan hacer operaciones entre diferentes tipos, en nivel mas alto
+6. Como descartar el valor de la funcion (DISCARD)
+8. Como hacer accion de continue con etiquetado
+9. Como chequeo tipos en asignacion con while
+10. Con imprimir el Simbolo de la TS alcanza??
+11. Tenemos que seguir mostrando los tokens?
