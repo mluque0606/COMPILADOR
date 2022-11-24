@@ -28,6 +28,7 @@ public class AS6 implements Accion_Semantica {
         else {
             Lexema lexema = new Lexema(numero);
             TablaSimbolos.agregarSimbolo(simbolo,lexema);
+            TablaSimbolos.agregarAtributo(simbolo, "tipo", "Float");
             return new Token(258,TablaSimbolos.obtenerSimbolo(simbolo));
         }
     }

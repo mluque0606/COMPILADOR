@@ -1,3 +1,8 @@
+- Revisar cuando se dice parametros = 0
+- Si no declaro variable, no tira error (porque en las AS las agrego)
+- Hacer .jar
+
+
 CORRECIONES: 
 	1. No se puede ejecutar por .jar
 	2. Faltan errores:  
@@ -13,8 +18,8 @@ CORRECIONES:
 
 GENERAL
 (listo) -> Polaca dinamica para asignaciones, selecciones, iteracion, impresion e invocacion a funcion.
-(no anda) -> Incroporar tipo, uso y demas atributos a la Tabla de Simbolos.
-(algo en chequeoAmbito) -> Informar error semantico para: variables no declaradas, variables redeclaradas, funciones no declaradas, funciones redeclaradas y demas cuestiones de alcance.
+(casi) -> Incroporar tipo, uso y demas atributos a la Tabla de Simbolos.
+(casi) -> Informar error semantico para: variables no declaradas, variables redeclaradas, funciones no declaradas, funciones redeclaradas y demas cuestiones de alcance.
 	* Reglas de alcance: Se permite mismo nombre de variable, funcion o etiqueta siempre que sea en diferentes ambito, cada declaracion es visible en su ambito o en la anidacion de declaraciones.
 (algo) -> Informar error semantico si no tiene conversion explicita y son de diferentes tipos (ETAPA 4).
 (listo) -> Chequear cantidad y tipo de parametros (entre los formales y reales).
@@ -23,13 +28,12 @@ GENERAL
 PARTICULAR
 -> DISCARD: Si en una sentencia ejecutable aparece discard, descartar el valor de retorno de la funcion.
 -> WHILE CON EXPRESION: La asignacion se realiza al final del cuerpo del while, si hay un break se debe salir de la iteracion donde se encuentra. 
-(falta)-> CONTINUE CON ETIQUETADO: Se debe saltar a la proxima iteracion de la etiqueta, se debe chequear que exista la etiqueta y que la sentencia continue este dentro de ella o en una anidacion.  
+-> CONTINUE CON ETIQUETADO: Se debe saltar a la proxima iteracion de la etiqueta, se debe chequear que exista la etiqueta y que la sentencia continue este dentro de ella o en una anidacion.  
 -> SENTENCIA DE CONTROL COMO EXPRESION: Se debe retornar el valor del break o else, como es expresion aritmetica hay que chequear tipos. 
 -> CONVERSIONES EXPLICITAS: Solo hay compatibilidad si se convierte el entero, en una asignacion si el lado izquierdo es entero y el derecho distintio informar error.
 
 SALIDA
--> Impresion de Polaca (con referencia y nombre de la Tabla de Simbolos) �Si o si la referencia o solo con el nombre alcanza?
+-> Impresion de Polaca
 -> Errores lexicos, sintacticos y semanticos.
 -> Tabla de Simbolos.
--> �Tenemos que mostrar los tokens para ver que funciona bien la rentrega que pidio?
 

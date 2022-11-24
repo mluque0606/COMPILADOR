@@ -23,7 +23,6 @@ programa_3 {
 		i32 x;
 		x =: while (x<10) : (x =: x+1){
 			out('ciclando');
-			x =: x+1;
 		}; else 0;
 		return(x);
 	};

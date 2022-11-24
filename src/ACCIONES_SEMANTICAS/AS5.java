@@ -31,6 +31,7 @@ public class AS5 implements Accion_Semantica {
         } else {
             Lexema lexema = new Lexema(Integer.parseInt(simbolo));
             TablaSimbolos.agregarSimbolo(simbolo,lexema);
+            TablaSimbolos.agregarAtributo(simbolo, "tipo", "Entero");
             return new Token(258,TablaSimbolos.obtenerSimbolo(simbolo));
         }
     }

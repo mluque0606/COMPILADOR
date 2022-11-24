@@ -74,9 +74,10 @@ header_funcion: FUN ID '(' lista_parametros ')' ':' tipo {
                 			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
 							cambiarAmbito($2.sval);                			
 							procesarParametros(ptr1);
+							$$.sval = ptr1;
                 			agregarToken("!" + nombreFuncion().replace(':', '/'));
             			} else {
-                			agregarError(errores_semanticos,"Error","Redeclaraion de la funcion " + $2.sval+ Parser.ambito.toString());
+                			agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Redeclaracion de la funcion " + $2.sval+ Parser.ambito.toString());
             			}
 						}
 						
@@ -86,10 +87,11 @@ header_funcion: FUN ID '(' lista_parametros ')' ':' tipo {
                 			String ptr1 = chequeoAmbito($2.sval + Parser.ambito.toString());
                 			TablaSimbolos.agregarAtributo(ptr1,"tipo",$6.sval);
                 			TablaSimbolos.agregarAtributo(ptr1,"uso","nombre de funcion");
-							cambiarAmbito($2.sval);                			
+							cambiarAmbito($2.sval);     
+							$$.sval = ptr1;           			
                 			agregarToken("!" + nombreFuncion().replace(':', '/'));
             			} else {
-                			agregarError(errores_semanticos,"Error","Redeclaraion de la funcion " + $2.sval+ Parser.ambito.toString());
+                			agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Redeclaracion de la funcion " + $2.sval+ Parser.ambito.toString());
             			}
 						}
       
@@ -118,12 +120,13 @@ parametro: tipo ID {
         | tipo {agregarError(errores_sintacticos,"Error","Se espera el nombre del parametro");}
 ;
 
-tipo: I32 
-    | F32 
+tipo: I32 {$$.sval = "Entero";} 
+    | F32 {$$.sval = "Float";} 
 ;
 
 //Puede ser una funcion que solo retorne algo o, con sentencias ejecutables
 ejecucion_funcion: '{' bloque_funcion RETURN '(' expresion ')' ';' '}' ';' {
+																		//$$ = $2;
 																		agregarToken("@ret@" + nombreFuncion());
 																		agregarToken("\\RET");
 																		}
@@ -153,16 +156,16 @@ ejecucion: ejecucion sentencia
         | sentencia
 ;
 
-sentencia: sentencia_ejecutable
-        | sentencia_declarable
+sentencia: sentencia_ejecutable  {$$ = $1; $$.sval = "ejecutable";}
+        | sentencia_declarable   {$$.sval = "declarable";}
 ;
 
-sentencia_ejecutable: asignacion ';' 
-                | seleccion ';' {addEstructura("if");}
-                | impresion ';' {addEstructura("impresion");}
-                | iteracion_while {addEstructura("while");}
-                | invocacion_con_d {addEstructura("invocacion con discard");}
-                | error ';' {addEstructura("error");}
+sentencia_ejecutable: asignacion ';' {$$ = $1;}
+                | seleccion ';' {addEstructura("if"); $$ = $1;}
+                | impresion ';' {addEstructura("impresion"); $$ = $1;}
+                | iteracion_while {addEstructura("while"); $$ = $1;}
+                | invocacion_con_d {addEstructura("invocacion con discard"); $$ = $1;}
+                | error ';' {addEstructura("error"); $$ = $1;}
 ;
 
 //DESCARTAR VALOR DE RETORNO DE LA FUNCION?
@@ -177,7 +180,7 @@ iteracion_while:  inicio_while condicion_salto_while '(' asignacion ')' '{' ejec
 																												agregarToken(Integer.toString((int) pila.pop()+1));	
 																												agregarToken("#BI");	
 																												}
-  				| inicio_while condicion_salto_while '(' asignacion ')' '{' break '}' ';'{ 
+  				| inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion break '}' ';'{ 
  																												//DESAPILO+COMPLETO PASO INCOMPLETO
 																												//DESAPILO PASO DE INICIO
 																												//GENERAR BI AL INICIO
@@ -185,7 +188,25 @@ iteracion_while:  inicio_while condicion_salto_while '(' asignacion ')' '{' ejec
 																												agregarToken(Integer.toString((int) pila.pop()+1));
 																												agregarToken("#BI");	
 																												}
-  				| inicio_while condicion_salto_while '(' asignacion ')' '{' continue '}' ';' { 
+																												
+				| inicio_while condicion_salto_while '(' asignacion ')' '{' break '}' ';'{ 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));
+																												agregarToken("#BI");	
+																												}
+  				| inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion continue '}' ';' { 
+ 																												//DESAPILO+COMPLETO PASO INCOMPLETO
+																												//DESAPILO PASO DE INICIO
+																												//GENERAR BI AL INICIO
+																												polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+																												agregarToken(Integer.toString((int) pila.pop()+1));	
+																												agregarToken("#BI");	
+																												}		
+																												
+				| inicio_while condicion_salto_while '(' asignacion ')' '{' continue '}' ';' { 
  																												//DESAPILO+COMPLETO PASO INCOMPLETO
 																												//DESAPILO PASO DE INICIO
 																												//GENERAR BI AL INICIO
@@ -209,7 +230,7 @@ iteracion_while:  inicio_while condicion_salto_while '(' asignacion ')' '{' ejec
 																												agregarToken(Integer.toString((int) pila.pop()+1));	
 																												agregarToken("#BI");	
 																												}
-                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' break '}' ';' { 
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion break '}' ';' { 
  																												//DESAPILO+COMPLETO PASO INCOMPLETO
 																												//DESAPILO PASO DE INICIO
 																												//GENERAR BI AL INICIO
@@ -217,7 +238,7 @@ iteracion_while:  inicio_while condicion_salto_while '(' asignacion ')' '{' ejec
 																												agregarToken(Integer.toString((int) pila.pop()+1));
 																												agregarToken("#BI");	
 																												}     
-                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' continue '}' ';' { 
+                | ID ':' inicio_while condicion_salto_while '(' asignacion ')' '{' ejecucion_iteracion continue '}' ';' { 
  																												//DESAPILO+COMPLETO PASO INCOMPLETO
 																												//DESAPILO PASO DE INICIO
 																												//GENERAR BI AL INICIO
@@ -255,14 +276,22 @@ ejecucion_iteracion: ejecucion_iteracion sentencia_ejecutable
                 | sentencia_ejecutable 
 ;
 
-continue: CONTINUE 
-	|CONTINUE ':' ID {
+continue: CONTINUE ';' {$$ = $1; agregarToken("CONTINUE");}
+	|CONTINUE ':' ID ';' {$$ = $1;
+					agregarToken("CONTINUE");
+					agregarToken("ETIQUETA " + $3.sval);
 					String ptr = chequeoAmbito($3.sval + Parser.ambito.toString());
 					}
 ;
 
-break: BREAK CTE {TablaSimbolos.agregarAtributo("asignacion while", "break", $2.sval);}
-	|BREAK '-' CTE  {TablaSimbolos.agregarAtributo("asignacion while", "break", "-"+$3.sval);}
+break: BREAK CTE ';' {$$ = $1;
+					agregarToken("BREAK");
+					agregarToken("ETIQUETA " + $2.sval);
+					TablaSimbolos.agregarAtributo("asignacion while", "break", $2.sval);}
+	|BREAK '-' CTE  ';' {$$ = $1;
+					agregarToken("BREAK");
+					agregarToken("ETIQUETA "+"-"+$3.sval);
+					TablaSimbolos.agregarAtributo("asignacion while", "break", "-"+$3.sval);}
 ;
 
 seleccion: IF condicion_salto_if then_seleccion_sin_else ENDIF {
@@ -303,6 +332,13 @@ then_seleccion: THEN '{' ejecucion_control '}' ';' {
 								agregarToken("BI");
 								}
 								
+	| THEN '{' ejecucion_control break '}' ';' {
+								polaca.set((int)pila.pop(), Integer.toString(polaca.size()+3));
+								apilar();
+								agregarToken("SI");
+								agregarToken("BI");
+								}
+								
 	| '{' ejecucion_control '}' ';' {agregarError(errores_sintacticos,"Error","Se espera THEN antes de { ");}
  	| sentencia_ejecutable {agregarError(errores_sintacticos,"Error","Se espera THEN antes de la sentencia ejecutable");}
     | THEN '{' ejecucion_control {agregarError(errores_sintacticos,"Error","Se espera '}' luego de las sentencias del THEN");}
@@ -311,6 +347,8 @@ then_seleccion: THEN '{' ejecucion_control '}' ';' {
 
 then_seleccion_sin_else: THEN '{' ejecucion_control '}' ';' 
     | THEN sentencia_ejecutable
+    | THEN break 			
+	| THEN '{' ejecucion_control break '}' ';'
 
 	| '{' ejecucion_control '}' ';' {agregarError(errores_sintacticos,"Error","Se espera THEN antes de { ");}
  	| sentencia_ejecutable {agregarError(errores_sintacticos,"Error","Se espera THEN antes de la sentencia ejecutable");}
@@ -420,11 +458,12 @@ comparacion_bool: expresion '>' expresion {
 //AGREGAR ACCIONES EN LA POLACA PARA EL CASO DE ASIGNACION POR EXPRESION
 asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3.sval);
  						String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());
-        				if (TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("constante")) {
+        				if (TablaSimbolos.obtenerAtributo(ptr1,"uso") == "constante") {
             				agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Se esta queriendo modificar la constante " + ptr1);
         				} else {
 							agregarToken(ptr1); 
             				agregarToken("=:");
+            				$$.sval = ptr1;
         				}
                         }
                                                 
@@ -437,6 +476,9 @@ asignacion: ID ASIGNACION expresion {addEstructura($1.sval + " asignacion " + $3
 						if((!TablaSimbolos.obtenerAtributo(ptr1, "tipo").equals(TablaSimbolos.obtenerAtributo("asignacion while", "break"))) || (!TablaSimbolos.obtenerAtributo(ptr1, "tipo").equals(TablaSimbolos.obtenerAtributo("asignacion while", "else")))) {
 							{agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Tipos incompatibles en la asignacion por while");}
 						}
+						agregarToken(ptr1); 
+            			agregarToken("=:");
+            			$$.sval = ptr1;
 						}
 	
 	| ID ASIGNACION iteracion_while {agregarError(errores_sintacticos,"Error","Se espera un else luego del while");}
@@ -455,12 +497,13 @@ expresion: expresion '+' termino {
 								String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
         						String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
 
-        						TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
-       							String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
-        						TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        						//TablaSimbolos.agregarSimbolo($1.sval+"+"+$3.sval, new Lexema($1.sval+"+"+$3.sval));
+       							//String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"+"+$3.sval);
+        						//TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
         						//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
-            						TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+            						//TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 									agregarToken("+");
+									$$.sval = $3.sval;
         						//} else {
             					//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la suma.");
         						//}
@@ -469,17 +512,21 @@ expresion: expresion '+' termino {
     						String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
         					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
 
-        					TablaSimbolos.agregarSimbolo($1.sval+"-"+$3.sval, new Lexema($1.sval+"-"+$3.sval));
-       						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"-"+$3.sval);
-        					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        					//TablaSimbolos.agregarSimbolo($1.sval+"-"+$3.sval, new Lexema($1.sval+"-"+$3.sval));
+       						//String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"-"+$3.sval);
+        					//TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
         					//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
-            					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+            					//TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 								agregarToken("-");
+								$$.sval = $3.sval;
         					//} else {
             				//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la resta.");
         					//}
     						}
-    | termino
+    | termino {
+    	$$ = $1;
+        $$.sval = $1.sval;
+    }
      
     | TOF32 '(' expresion '+' termino ')'  {
     						String ptr1 = TablaSimbolos.obtenerSimbolo($3.sval);
@@ -513,12 +560,13 @@ termino: termino '*' factor {
 							String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
         					String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
 
-        					TablaSimbolos.agregarSimbolo($1.sval+"*"+$3.sval, new Lexema($1.sval+"*"+$3.sval));
-       						String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"*"+$3.sval);
-        					TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        					//TablaSimbolos.agregarSimbolo($1.sval+"*"+$3.sval, new Lexema($1.sval+"*"+$3.sval));
+       						//String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"*"+$3.sval);
+        					//TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
         					//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
-            					TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+            					//TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 								agregarToken("*");
+								$$.sval = $3.sval;
         					//} else {
             				//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la multiplicacion.");
         					//}
@@ -527,23 +575,28 @@ termino: termino '*' factor {
     					String ptr1 = TablaSimbolos.obtenerSimbolo($1.sval);
         				String ptr2 = TablaSimbolos.obtenerSimbolo($3.sval);
 
-        				TablaSimbolos.agregarSimbolo($1.sval+"/"+$3.sval, new Lexema($1.sval+"/"+$3.sval));
-       					String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"/"+$3.sval);
-        				TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
+        				//TablaSimbolos.agregarSimbolo($1.sval+"/"+$3.sval, new Lexema($1.sval+"/"+$3.sval));
+       					//String ptr3 = TablaSimbolos.obtenerSimbolo($1.sval+"/"+$3.sval);
+        				//TablaSimbolos.agregarAtributo(ptr3,"uso","auxiliar");
         				//if (TablaSimbolos.obtenerAtributo(ptr1,"tipo").equals(TablaSimbolos.obtenerAtributo(ptr2,"tipo"))) {
-            				TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
+            				//TablaSimbolos.agregarAtributo(ptr3,"tipo",TablaSimbolos.obtenerAtributo(ptr1,"tipo")); // le agrego el tipo a la variable auxiliar
 							agregarToken("/");
+							$$.sval = $3.sval;
         				//} else {
             			//	agregarError(errores_semanticos,"Error","Tipos no compatibles en la division.");
         				//}
     					}
-    | factor
+    | factor {
+    	$$ = $1;
+        $$.sval = $1.sval;
+    }
 ;
 
 combinacion_terminales : ID {
 			String ptr = chequeoAmbito($1.sval + Parser.ambito.toString());
 			if (ptr != null) {
 				agregarToken(ptr);
+				$$.sval = ptr;
             } else {
             	agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Variable " + $1.sval + "no encontrada");
             }
@@ -553,6 +606,7 @@ combinacion_terminales : ID {
     		String ptr = TablaSimbolos.obtenerSimbolo($1.sval);
     		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
 			agregarToken(ptr);
+			$$.sval = ptr;
             }
                 
  	|'-' CTE {
@@ -560,6 +614,7 @@ combinacion_terminales : ID {
     		TablaSimbolos.agregarAtributo(ptr, "uso", "constante");
     		String simb = negarConstante(ptr);
     		agregarToken(simb);
+    		$$.sval = ptr;
     		}
 ;
 
@@ -581,6 +636,7 @@ invocacion: ID '(' combinacion_terminales ',' combinacion_terminales ')'  {
 												agregarToken(ptr2);
 												agregarToken(ptr3);
 												agregarToken("#CALL");
+												$$.sval = TablaSimbolos.obtenerAtributo(ptr1,"tipo");
                         					} else {
                             					agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"No concuerda el tipo del segundo parametro de la invocacion con el de la funcion.");
                         					}
@@ -612,6 +668,7 @@ invocacion: ID '(' combinacion_terminales ',' combinacion_terminales ')'  {
                     						agregarToken(ptr1);
 											agregarToken(ptr2);
 											agregarToken("#CALL");
+											$$.sval = TablaSimbolos.obtenerAtributo(ptr1,"tipo");
                 						} else {
                     						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"No concuerda el tipo del parametro de la invocacion con el de la funcion.");
                 						}
@@ -636,6 +693,7 @@ invocacion: ID '(' combinacion_terminales ',' combinacion_terminales ')'  {
             						if (cantidadParametrosCorrectos) {
                 						agregarToken(ptr1);
 										agregarToken("#CALL");
+										$$.sval = TablaSimbolos.obtenerAtributo(ptr1,"tipo");
             						} else {
                 						agregarErrorSemantico(AnalizadorLexico.getLineaActual(),"Cantidad de parametros incorrectos en la funcion.");
             						}
@@ -652,7 +710,11 @@ invocacion: ID '(' combinacion_terminales ',' combinacion_terminales ')'  {
 	//| DISCARD ID '(' ')'  {agregarError(errores_sintacticos,"Error","No puede contener DISCARD, al estar en una asignacion");}
 ;
 
-factor: combinacion_terminales
+factor: combinacion_terminales {
+		String ptr = chequeoAmbito($1.sval);
+        $$ = $1;
+        $$.sval = TablaSimbolos.obtenerAtributo(ptr,"tipo");
+		}	
 	| invocacion
 ;
 

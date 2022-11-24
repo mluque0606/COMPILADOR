@@ -1,4 +1,2 @@
 3. Ayuda para crear el .jar
-5. Como controlar que se puedan hacer operaciones entre diferentes tipos, en nivel mas alto (hecha)
-8. Como hacer accion de continue con etiquetado
 9. Como chequeo tipos en asignacion con while (hecho)

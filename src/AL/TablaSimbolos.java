@@ -91,9 +91,12 @@ public class TablaSimbolos {
 
 	public static String obtenerAtributo(String simb, String atributo) {
 		Atributo aux = getAtr(simb);
-        for (Map.Entry<String, String> entrada: aux.getMas().entrySet()) {
-        	if(entrada.getKey().equals(atributo))
-        		return entrada.getValue();        }
+        if(aux != null) {	
+			for (Map.Entry<String, String> entrada: aux.getMas().entrySet()) {
+        		if(entrada.getKey().equals(atributo))
+        			return entrada.getValue();       
+        	}
+        }
 		return null;
 	}
 	
