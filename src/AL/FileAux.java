@@ -1,6 +1,7 @@
 package AL;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
@@ -127,4 +128,16 @@ public class FileAux {
                 return null;
         }
     }
+
+	public static void wtiteProgram(String a, String s) {
+		File file = new File(a);
+		try {
+			file.createNewFile();
+			FileWriter writer = new FileWriter(a);
+			writer.write(s);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

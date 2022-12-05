@@ -80,15 +80,93 @@ public class GeneradorCodigo {
 
         generarCabecera();	
 	}
+	
 //Funcion encargada de generar la cabecera del codigo
 	private static void generarCabecera() {
-		
+		//funcion encargada de la generacion de la cabecera del codigo
+        StringBuilder cabecera = new StringBuilder();
+
+        cabecera.append(".386\n")
+            .append(".model flat, stdcall\n")
+            .append("option casemap :none\n")
+            .append("include \\masm32\\include\\windows.inc\n")
+            .append("include \\masm32\\include\\kernel32.inc\n")
+            .append("include \\masm32\\include\\user32.inc\n")
+            .append("includelib \\masm32\\lib\\kernel32.lib\n")
+            .append("includelib \\masm32\\lib\\user32.lib\n")
+            .append(".data\n")
+            .append(nombreAux2bytes).append(" dw ? \n")
+            //agregamos las constantes de error
+            .append("@ERROR_DIVISION_POR_CERO db \"" + ERROR_DIVISION_POR_CERO + "\", 0\n")
+            .append("@ERROR_OVERFLOW_PRODUCTO db \"" + ERROR_OVERFLOW_PRODUCTO + "\", 0\n")
+            .append("@ERROR_INVOCACION db \"" + ERROR_INVOCACION + "\", 0\n");
+
+        //generarCodigoDatos(cabecera);
+
+        cabecera.append(".code\n");
+        cabecera.append(codigo);
+        codigo = cabecera;
 	}
 	
 //Utilizada para generar el codigo necesario para todos los datos del programa, presentes en la TS
+	/*ACOMODAR
 	private static void generarCodigoDatos(StringBuilder cabecera) {
-		
+		//funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
+        for (int simbolo : TablaSimbolos.obtenerConjuntoPunteros()) {
+            //tomamos el atributo 'uso' del simbolo actual, desde la tabla de simbolos
+            String uso = TablaSimbolos.obtenerAtributo(simbolo, "uso");
+
+            if (!uso.equals(TablaSimbolos.NO_ENCONTRADO_S) && uso.equals("funcion")) continue;
+
+            String tipo_actual = TablaSimbolos.obtenerAtributo(simbolo, "tipo");
+            String lexema_actual = TablaSimbolos.obtenerAtributo(simbolo, "lexema");
+            
+            if (tipo_actual.equals(TablaSimbolos.NO_ENCONTRADO_S)) continue;
+
+            switch (tipo_actual) {
+                case TablaTipos.STR_TYPE:
+                    //tomo el valor de la tabla de simbolos
+                    String valor_actual = TablaSimbolos.obtenerAtributo(simbolo, "valor");
+                    cabecera.append(lexema_actual.substring(1)).append(" db \"").append(valor_actual).append("\", 0\n");
+                    break;
+                
+                case TablaTipos.ULONG_TYPE:
+                case TablaTipos.FUNC_TYPE:
+                    if (uso.equals("constante")) {
+                        String lexema = lexema_actual;
+                        lexema_actual = "@" + lexema_actual;
+                        cabecera.append(lexema_actual).append(" dd ").append(lexema).append("\n");
+                    } else {
+                        if (!lexema_actual.startsWith("@")) {
+                            cabecera.append("_");
+                        }
+                        
+                        cabecera.append(lexema_actual).append(" dd ? \n");
+                    }
+                   
+                    break;
+                
+                case TablaTipos.DOUBLE_TYPE:        //en caso que el simbolo de tipo double y sea una constante
+                    if (uso.equals("constante")) {
+                        String lexema = lexema_actual;
+
+                        if (lexema_actual.charAt(0) == '.')
+                            lexema = "0" + lexema;
+
+                        lexema_actual = "@" + lexema_actual.replace('.', '@').replace('-', '@').replace('+', '@');  //cambiamos el punto por una @ 
+                        cabecera.append(lexema_actual).append(" REAL4 ").append(lexema).append("\n");   //y agregamos el simbolo a la cabecera con REAL4
+                    } else {
+                        if (! lexema_actual.startsWith("@")) {
+                            cabecera.append("_");
+                        }
+                        cabecera.append(lexema_actual).append(" dq ?\n");
+                    }
+                    
+                    break;
+            }
+        }
 	}
+	*/
 	
 	public static void generarOperador(String operador) {
 		String op2 = pila_tokens.pop();

@@ -7,9 +7,9 @@ public class Main {
 		//c.ejecutarCompilador("src/Testeos/Programa_1.txt");
 		
 		
-		if(args.length != 0) {
+		if(args.length > 1) {
 			Compilador c = new Compilador();
-			c.ejecutarCompilador("src/program_1.txt");
+			c.ejecutarCompilador(args[0], args[1]);
 		}
 		else {
 			System.out.println("No se encontro el archivo a compilar");
