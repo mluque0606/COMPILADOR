@@ -1,13 +1,9 @@
 programa_1 {
-	fun funcion1():i32
-	{
-		i32 a;
-		a=:2;
-		i32 z;
-		z =: 3;
-		return (a + z + y);
-	};
+	i32 a;
+	a=:2;
+	i32 z;
+	z =: 3;
 	i32 resultado;
-	resultado =: 10;
+	resultado =: 10*2;
 	out('El resultado de la funcion fue calculado');
 };

@@ -122,4 +122,8 @@ public class TablaSimbolos {
 		tabla.put(string, a);
 	}
 	
+	public static Map<String, Atributo> devolverTabla(){
+		return tabla;
+	}
+	
 }

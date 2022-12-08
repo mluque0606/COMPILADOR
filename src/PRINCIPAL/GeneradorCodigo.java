@@ -1,6 +1,8 @@
 package PRINCIPAL;
+import java.util.Map;
 import java.util.Stack;
 
+import AL.Atributo;
 import AL.TablaSimbolos;
 import AL.TablaTipos;
 
@@ -42,9 +44,6 @@ public class GeneradorCodigo {
                     break;
                 case "#BF":
                     generarSalto(ultimaComparacion);
-                    break;
-                case "#BT": //QUE ES #BT???
-                    generarSalto(negacion(ultimaComparacion));
                     break;
                 case "#CALL":
                     generarLlamadoFuncion();
@@ -167,6 +166,21 @@ public class GeneradorCodigo {
         }
 	}
 	*/
+
+//Funcion utilizada para generar el codigo de todos los simbolos presentes en la TS	
+	public void generarCodigoDatos(StringBuilder cabecera) {
+		for(Map.Entry<String, Atributo> entry: TablaSimbolos.devolverTabla().entrySet()) {
+			//Recorremos la tabla, tomando el uso
+			String uso = TablaSimbolos.obtenerAtributo(entry.getKey(), "uso");	
+			String tipo = TablaSimbolos.obtenerAtributo(entry.getKey(), "tipo");	
+			String lexema_actual = entry.getKey();	
+			
+			if(!(tipo == "String")) {
+				if(uso == )
+			}
+
+		}
+	}
 	
 	public static void generarOperador(String operador) {
 		String op2 = pila_tokens.pop();
@@ -476,7 +490,7 @@ public class GeneradorCodigo {
 		char caracter = token.charAt(0);
 		String puntToken = TablaSimbolos.obtenerSimbolo(token);
 		
-		if(TablaSimbolos.obtenerAtributo(puntToken, "uso").equals("constante")) {
+		if(TablaSimbolos.obtenerAtributo(puntToken, "uso") == "constante") {
 			return "@" + token.replace('.', '@').replace('-', '@').replace('-', '@');
 		} else if(Character.isLowerCase(caracter) || Character.isUpperCase(caracter) || caracter == '_') {
 			return "_" + token;
@@ -530,18 +544,6 @@ public class GeneradorCodigo {
         }
 
         ultimaComparacion = "";
-	}
-	
-	private static String negacion(String comparacion) {
-		switch (comparacion) {
-			case "JE": return "JNE";
-			case "JNE": return "JE";
-			case "JG": return "JLE";
-			case "JLE": return "JG";
-			case "JL": return "JGE";
-			case "JGE": return "JL";
-        	default: return comparacion;
-		}
 	}
 	
 	private static void generarLlamadoFuncion() {

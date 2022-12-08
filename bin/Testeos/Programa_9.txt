@@ -1,0 +1,9 @@
+programa_8 {
+	i32 i, j;
+	i =: while(i > 0):(i =: i+1){
+		if(i = 0)then
+			break 2;
+		end_if;
+	}; else 0;
+	out('Terminado');
+};
