@@ -9,9 +9,12 @@ includelib \masm32\lib\user32.lib
 .data
 aux2bytes dw ? 
 @ERROR_DIVISION_POR_CERO db "ERROR: Division por cero", 0
-@ERROR_OVERFLOW_PRODUCTO db "ERROR: Overflow en operacion de producto", 0
+@ERROR_OVERFLOW_SUMA_FLOTANTE db "ERROR: Overflow en suma de flotante", 0
 @ERROR_INVOCACION db "ERROR: Invocacion de funcion a si misma no permitida", 0
-cadena0 db "El resultado de la funcion fue calculado", 0
+_2 db 2
+_3 db 3
+@out1 db  "&cadena0", 0
+_10 db 10
 .code
 START:
 MOV EAX, 2

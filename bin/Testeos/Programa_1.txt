@@ -4,6 +4,6 @@ programa_1 {
 	i32 z;
 	z =: 3;
 	i32 resultado;
-	resultado =: 10*2;
+	resultado =: 10;
 	out('El resultado de la funcion fue calculado');
 };

@@ -1,0 +1,505 @@
+package Componentes;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Stack;
+
+public class GeneradorCodigo {
+    public String pathArchivo;
+    public FileWriter fw;
+    public BufferedWriter bw;
+    public StringBuilder sb, sbAux;
+    public Stack<String> pilaOperandos = new Stack<String>();
+    public HashSet<Integer> pilaEtiquetas = new HashSet<Integer>();
+    public ArrayList<String> funcionesRecursion = new ArrayList<String>();
+    
+    // Atributos auxiliares
+    public static int nroAuxiliar = 1;      
+    public static int nroPolaca = 0;
+    public static String funcionActual = "No hay funcion";
+    ArrayList<String> operadores = new ArrayList<String>(){{add("+"); add("-"); add("*");add("/");add("out");add("return");add("break");add("=:");add("<");add(">");add(">=");add("<=");add("=");add("=!");add("BF");add("BI");}};
+    
+    
+
+    private String generarNombreSimbolo(Simbolo s){
+        switch (s.getUso()){
+            case "variable":
+            case "nombre de funcion":
+            case "nombre de parametro":
+            case "nombre de programa":
+            case "constante":
+                return (s.getNombre());
+            case "valor":
+            case "mensaje":
+            default:
+                return ("Simbolo" + s.getID());
+        }
+    }
+    public GeneradorCodigo(String pathArchivo) throws IOException{
+        this.pathArchivo = pathArchivo;
+        fw = new FileWriter(pathArchivo);
+        sb = new StringBuilder();
+        sbAux = new StringBuilder();
+    }
+    private void generarCabecera(StringBuilder sb){
+        sb.append(".386\n");
+        sb.append(".model flat, stdcall\n");
+        sb.append("option casemap :none\n");
+        sb.append("include \\masm32\\include\\windows.inc\n");
+        sb.append("include \\masm32\\include\\kernel32.inc\n");
+        sb.append("include \\masm32\\include\\user32.inc\n");
+        sb.append("includelib \\masm32\\lib\\kernel32.lib\n");
+        sb.append("includelib \\masm32\\lib\\user32.lib\n");
+    }
+
+    private void generarAuxFunciones(){
+        HashMap<Integer, Simbolo> tablaSimbolos = Tablas.getTablaSimbolos();
+        ArrayList<Simbolo> simbolosAuxiliares = new ArrayList<Simbolo>();
+        for (Integer id : tablaSimbolos.keySet()){
+            Simbolo s = tablaSimbolos.get(id);
+            if (s.getUso().equals("nombre de funcion"))
+                simbolosAuxiliares.add(new Simbolo("@aux" + s.getNombre(), s.getTipo()));
+        }
+        for (Simbolo s : simbolosAuxiliares){
+            Tablas.addSimbolo(s);
+        }
+    }
+    
+    private void generarDatos(StringBuilder sb){
+        sb.append(".data\n");
+        HashMap<Integer, Simbolo> tablaSimbolos = Tablas.getTablaSimbolos();
+        for (Integer id : tablaSimbolos.keySet()){
+            Simbolo s = tablaSimbolos.get(id);
+            if (s.getUso().equals("nombre de funcion")){
+                sb.append("@aux");
+            }
+            else {
+                sb.append("_");
+            }
+            sb.append(generarNombreSimbolo(s));
+            switch (s.getTipo()) {
+                case "ui32":
+                    sb.append(" dd ");
+                    break;
+                case "f64":
+                    sb.append(" dq ");
+                    break;
+                case "cadena":
+                case "id":
+                    sb.append(" db \"" + s.getNombre() + "\", ");
+                    break;
+                default:
+                    System.out.println("(ERROR) Tipo " + s.getTipo() + " desconocido para " + s.getNombre());
+                    break;
+            }
+            if (s.getUso().equals("valor"))
+                sb.append(s.getNombre() + "\n");
+            else
+                sb.append(" 0\n");
+        }
+        // Auxiliares en caso de errores
+        sb.append("@auxErrorOverflow db \"(ERROR) Una suma de dobles genera overflow\", 0 \n");
+        sb.append("@auxErrorNegativoSinSigno db \"(ERROR) Una resta de ui32 da negativo\", 0 \n");
+        sb.append("@auxErrorRecursionFuncion db \"(ERROR) Una funcion se invoca a si misma \", 0 \n");
+        sb.append("@auxComparador dw 0 \n");
+        // HelloWorld db "Hello World!", 0 (ni idea el 0)
+    }
+
+    private void generarFunciones(){
+        sb.append(".code\n");
+        HashMap<String, ArrayList<String> > polacasFuncion = Polaca.getPolacasFuncion();
+        for(String funcion : polacasFuncion.keySet()){
+            //System.out.println("Generando polaca de " + funcion);
+            funcionActual = funcion;
+            sb.append(funcion+": \n");
+            generarInstrucciones(polacasFuncion.get(funcion), funcion);
+            sb.append("ret\n");
+        }
+    }
+
+    private boolean esOperador(String o){
+        if (operadores.contains(o))
+            return true;
+        int ref = Integer.parseInt(o);
+        //if (Tablas.getSimbolo(ref) != null)
+        //    System.out.println("Lei " + Tablas.getSimbolo(ref).getNombre());
+        return ((Tablas.getSimbolo(ref) != null) && (Polaca.parametrosFuncion(Tablas.getSimbolo(ref).getNombre()) >=0));
+    }
+    
+    private String chequearTipos(String op1, String op2, String operador){
+        if ((op1 == null) && (op2 == null)){
+            return Tablas.getSimbolo(Integer.parseInt(operador)).getTipo();
+        }
+        String aux1, aux2;
+        if (esOperador(op1) || Tablas.getSimbolo(Integer.parseInt(op1.toString())).getTipo().equals("ui32")) /// revisar es operador
+            aux1 = "ui32";
+        else
+            aux1 = Tablas.getSimbolo(Integer.parseInt(op1.toString())).getTipo();
+        if (op2 == null || esOperador(op2) || Tablas.getSimbolo(Integer.parseInt(op2.toString())).getTipo().equals("ui32"))
+            aux2 = "ui32";
+        else
+            aux2 = Tablas.getSimbolo(Integer.parseInt(op2.toString())).getTipo();
+        if(aux1.equals("f64")||aux2.equals("f64"))
+            return "f64";
+        else return "ui32";
+    }
+    
+    
+
+    private void realizarOperacion(Stack<String> operandos, String operador){
+        String operando1 = null, operando2 = null;
+        if (operandos.size() != 0)
+            operando1 = operandos.pop();
+        if (operandos.size() != 0)
+            operando2 = operandos.pop();
+        /*if (operando2 != null)
+            System.out.println(operando1.toString() + ", " + operando2.toString() + ", OP is " + operador.toString());
+        else if (operando1 != null)
+            System.out.println(operando1.toString() + ", OP is " + operador.toString());
+        else
+            System.out.println("OP is " + operador.toString());
+        */
+        if (chequearTipos(operando1,operando2,operador).equals("f64"))
+            realizarOperacionFlotantes(operando1, operando2, operador);
+        else
+            realizarOperacionEnteros(operando1, operando2, operador, "");
+    }
+
+    private void realizarOperacionEnteros(String operando1, String operando2, String operador, String funcion){
+        switch (operador.toString()) {
+        case "+":
+            String nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            String nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("MOV EBX, _").append(nombreSimbolo).append("\n");
+            Integer aux = ocuparAuxiliar("ui32");
+            sb.append("ADD EBX, _").append(nombreSimbolo2).append("\n");
+            sb.append("MOV _Simbolo").append(aux).append(", EBX\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "-":
+            sb.append("MOV EBX, _").append(operando1).append("\n");
+            aux = ocuparAuxiliar("ui32");
+            sb.append("SUB EBX, _").append(operando2).append("\n");
+            sb.append("JS LabelNegativoSinSigno\n");
+            sb.append("MOV ").append(aux).append(", EBX\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "*":
+            sb.append("MOV EAX, _").append(operando1).append("\n");
+            aux = ocuparAuxiliar("ui32");
+            sb.append("MUL EAX, _").append(operando2).append("\n");
+            sb.append("MOV ").append(aux).append(", EAX\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "/": 
+            sb.append("MOV EAX, _").append(operando1).append("\n");
+            aux = ocuparAuxiliar("ui32");
+            sb.append("DIV EAX, _").append(operando2).append("\n");
+            sb.append("MOV ").append(aux).append(", EAX\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "out":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            sb.append("invoke MessageBox, NULL, addr _" + nombreSimbolo + ", addr _" + nombreSimbolo + ", MB_OK\n");
+            break;
+        case "return":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            sb.append("MOV EBX, _").append(nombreSimbolo).append("\n");
+            sb.append("MOV @aux" + funcionActual + ", EBX\n");
+            break;
+        case "break":
+            // ??
+            break;
+        case "=:": 
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("MOV EBX, _").append(nombreSimbolo2).append("\n"); 
+            sb.append("MOV _").append(nombreSimbolo).append(", EBX\n");
+            break;
+        case "<": // (SF xOR OF) = 1
+        case ">": // (SF XOR OF) OR ZF) = 0
+        case ">=": // (SF xOR OF) = 0
+        case "<=": // (SF XOR OF) OR ZF) = 1
+        case "=": // ZF = 1
+        case "=!": // ZF = 0
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("MOV EBX, _").append(nombreSimbolo).append("\n");
+            sb.append("CMP EBX, _").append(nombreSimbolo2).append("\n"); 
+
+            pilaOperandos.add(operador.toString());
+            break;
+        case "BF":
+            nombreSimbolo = Tablas.getSimbolo(Integer.parseInt(operando1.toString())).getNombre();
+            switch ((String) operando2){
+                case "<": // (SF xOR OF) = 1
+                    sb.append("JAE Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                case ">": // (SF XOR OF) OR ZF) = 0
+                    sb.append("JBE Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                case ">=": // (SF xOR OF) = 0
+                    sb.append("JB Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                case "<=": // (SF XOR OF) OR ZF) = 1
+                    sb.append("JA Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                case "=": // ZF = 1
+                    sb.append("JNE Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                case "=!": // ZF = 0
+                    sb.append("JE Label").append(nombreSimbolo).append("\n"); 
+                    break;
+                default:
+                    break;
+                }
+            pilaEtiquetas.add(Integer.parseInt(nombreSimbolo));
+            break;
+        case "BI":
+            nombreSimbolo = Tablas.getSimbolo(Integer.parseInt(operando1.toString())).getNombre();
+            sb.append("JMP Label").append(nombreSimbolo).append("\n"); 
+            pilaEtiquetas.add(Integer.parseInt(nombreSimbolo));
+            break;
+        default:
+            String funcName = Tablas.getSimbolo(Integer.parseInt(operador)).getNombre();
+            int numParametros = Polaca.parametrosFuncion(funcName);
+            if (funcionesRecursion.contains(funcName)){
+                sb.append("JMP LabelRecursionFuncion\n");
+            }
+            if(numParametros >= 0){
+                // if (esDefinicionFuncion() && operador.equals(estaFuncion))
+                nombreSimbolo = "";
+                String param1 = "";
+                if(numParametros > 0) {
+                    nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+                    //System.out.println("le pido un parametro a " + nombreSimbolo + " que esta con " + operando1.toString());
+                    param1 = Tablas.getSimbolo(Integer.parseInt(operador)).getParametro(0);
+                }
+                if(numParametros==2){
+                    nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+                    String param2 = Tablas.getSimbolo(Integer.parseInt(operando2.toString())).getParametro(1);
+                    sb.append("MOV ECX, _" + nombreSimbolo + "\n");
+                    sb.append("MOV _" + param1 + ", ECX\n");
+                    sb.append("MOV ECX, _" + nombreSimbolo2 + "\n");
+                    sb.append("MOV _" + param2 + ", ECX\n");
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+                else if (numParametros==1){
+                    sb.append("MOV ECX, _" + nombreSimbolo + "\n");
+                    sb.append("MOV _" + param1 + ", ECX\n");
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+                else if (numParametros==0){
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+            }
+        break;
+        }
+    }
+
+    private void realizarOperacionFlotantes(String operando1, String operando2, String operador){
+        switch (operador.toString()) {
+        case "+":
+            String nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            String nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("FLD _").append(nombreSimbolo2).append("\n");
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            sb.append("FADD\n");
+            sb.append("JO LabelErrorOverflow\n");
+            Integer aux = ocuparAuxiliar("f64");
+            sb.append("FSTP _Simbolo").append(aux).append("\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "-":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("FLD _").append(nombreSimbolo2).append("\n");
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            sb.append("FSUB\n");
+            aux = ocuparAuxiliar("f64");
+            sb.append("FSTP _").append(aux).append("\n");
+            pilaOperandos.push(aux.toString());
+            break;        
+        case "*":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("FLD _").append(nombreSimbolo2).append("\n");
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            sb.append("FMUL\n");
+            aux = ocuparAuxiliar("f64");
+            sb.append("FSTP ").append(aux).append("\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "/": 
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("FLD _").append(nombreSimbolo2).append("\n");
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            sb.append("FDIV\n");
+            aux = ocuparAuxiliar("f64");
+            sb.append("FSTP ").append(aux).append("\n");
+            pilaOperandos.push(aux.toString());
+            break;
+        case "out":
+            nombreSimbolo = "_Simbolo" + Tablas.getSimbolo(operando1.toString()).getID();
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            break;
+        case "return":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            sb.append("FLD _").append(nombreSimbolo).append("\n");
+            sb.append("FSTP @aux" + funcionActual + "\n");
+            break;
+        case "break":
+            break;
+        case "=:":
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString())));
+            sb.append("FLD _").append(nombreSimbolo2).append("\n");
+            sb.append("FSTP _").append(nombreSimbolo).append("\n");
+            break;
+        case "<": // (SF xOR OF) = 1
+        case ">": // (SF XOR OF) OR ZF) = 0
+        case ">=": // (SF xOR OF) = 0
+        case "<=": // (SF XOR OF) OR ZF) = 1
+        case "=": // ZF = 1
+        case "=!": // ZF = 0
+            nombreSimbolo2 = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando2.toString()))); 
+            sb.append("FLD _").append(nombreSimbolo2).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
+            nombreSimbolo = generarNombreSimbolo(Tablas.getSimbolo(Integer.parseInt(operando1.toString())));
+            sb.append("FCOM _").append(nombreSimbolo).append("\n");
+            sb.append("FSTSW @auxComparador\n");
+            sb.append("MOV AX, @auxComparador\n");
+            sb.append("SAHF\n");
+            pilaOperandos.push(operador);
+        break;
+        case "BF": // no deberian entrar con tipo doble
+        case "BI": // no deberian entrar con tipo doble
+        default:
+            String funcName = Tablas.getSimbolo(Integer.parseInt(operador)).getNombre();
+            if((Polaca.parametrosFuncion(funcName) >= 0)&& !funcionesRecursion.contains(funcName)){
+                nombreSimbolo = Tablas.getSimbolo(Integer.parseInt(operando1.toString())).getNombre();
+                String param1 = Tablas.getSimbolo(funcName).getParametro(0);
+                if(Tablas.getSimbolo(funcName).cantParametros()==2){
+                    nombreSimbolo2 = Tablas.getSimbolo(Integer.parseInt(operando2.toString())).getNombre();
+                    String param2 = Tablas.getSimbolo(funcName).getParametro(1);
+                    sb.append("FLD _" + nombreSimbolo + "\n");
+                    sb.append("FSTP _" + param1 + "\n");
+                    sb.append("FLD _" + nombreSimbolo2 + "\n");
+                    sb.append("FSTP _" + param2 + "\n");
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+                else if (Tablas.getSimbolo(funcName).cantParametros()==1){
+                    sb.append("FLD _" + nombreSimbolo + "\n");
+                    sb.append("FSTP _" + param1 + "\n");
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+                else if (Tablas.getSimbolo(funcName).cantParametros()==0){
+                    sb.append("CALL " + funcName + "\n");
+                    //System.out.println("Pushea auxiliar");
+                    pilaOperandos.push(((Integer) Tablas.getSimbolo("@aux" + funcName).getID()).toString());
+                }
+            }
+            else if (funcionesRecursion.contains(funcName)){
+                sb.append("JMP LabelRecursionFuncion\n");
+            }
+            
+        break;
+        }
+    }
+
+    private void generarInstrucciones(ArrayList<String> polacaActual, String nombrefun){
+        String o = null;
+        for (int i = 0; i < polacaActual.size(); i++){
+            o = polacaActual.get(i);
+            System.out.println("Pasamos por: " + o);
+            if ((o.matches("-?\\d+")) && ((Tablas.getSimbolo(Integer.parseInt(o)).getNombre()).equals(nombrefun))) // cambiarlo
+                funcionesRecursion.add(nombrefun); // cambiarlo
+            
+            //System.out.println(i + " - " + o);
+            if (pilaEtiquetas.contains(i))
+                sb.append("Label" + i + ":\n");
+            if (esOperador(o)){
+                //System.out.println("Es operador: "+ i + " - " + o);
+                realizarOperacion(pilaOperandos, o);
+            }
+            else {
+                //System.out.println("Se agrega a operandos: "+ i + " - " + o);
+                pilaOperandos.add(o);
+            }
+            nroPolaca++;
+        }
+    }
+    
+    //private void generarInstrucciones(Polaca polaca){
+    //  
+    //    sb.append("start:\n");
+    //    // ...hacemos instrucciones...
+    //    sb.append("end start");
+    //}
+
+    private void escribirArchivo() throws IOException{
+        bw = new BufferedWriter(fw);
+        bw.append(sbAux);
+        bw.close();
+    }
+
+    private void generarErrores(){
+        sb.append("LabelErrorOverflow:\n");
+        sb.append("invoke MessageBox, NULL, addr @auxErrorOverflow, addr @auxErrorOverflow, MB_OK\n");
+        sb.append("LabelNegativoSinSigno:\n");
+        sb.append("invoke MessageBox, NULL, addr @auxErrorNegativoSinSigno, addr @auxErrorNegativoSinSigno, MB_OK\n");
+        sb.append("LabelRecursionFuncion:\n");
+        sb.append("invoke MessageBox, NULL, addr @auxErrorRecursionFuncion, addr @auxErrorRecursionFuncion, MB_OK\n");
+    }
+
+    public void generarCodigoAssembler() throws IOException{
+        generarAuxFunciones();
+        generarFunciones();
+        sb.append("start:\n");
+        //System.out.println("--- GENERANDO POLACA ACTUAL (INSTR) ---");
+        generarInstrucciones(Polaca.getActual(), "");
+        sb.append("JMP LabelEnd\n");
+        generarCabecera(sbAux);
+        generarDatos(sbAux);
+        generarErrores();
+        if (pilaEtiquetas.contains(Polaca.getActual().size()))
+            sb.append("Label" + Polaca.getActual().size() + ":\n");
+        sb.append("LabelEnd:\n");
+        sb.append("end start\n");
+        sbAux.append(sb);
+        for (String s : funcionesRecursion){
+            System.out.println("Es recursiva: " + s);
+        }
+        escribirArchivo();
+    }
+
+    private static int ocuparAuxiliar(String tipo) {
+        // Armo el auxiliar segun cuales estan ocupados
+        String nombreAux = "@aux" + nroAuxiliar;
+        nroAuxiliar++;
+        Simbolo s = new Simbolo(nombreAux, tipo);
+        Tablas.addSimbolo(s);
+        return s.getID();
+    }
+
+
+
+//invoke MessageBox, NULL, addr HelloWorld, addr HelloWorld, MB_OK
+//invoke ExitProcess, 0
+//end start
+
+}

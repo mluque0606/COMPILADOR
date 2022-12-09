@@ -493,15 +493,17 @@ public class Compilador {
         List<String> errores_lexicos = al.getErrores();
         System.out.println("Errores lexicos: " + errores_lexicos);
         System.out.println("Errores sintacticos: " + errores_sintacticos);
-        GeneradorCodigo.generarCodigo();
-        FileAux.wtiteProgram(a, GeneradorCodigo.codigo.toString());
         List<String> errores_semanticos = p.getErroresSemanticos();
-        //List<Token> tokens = al.getTokens();
         List<String> polaca = p.getPolaca();
-        //System.out.println("Tokens: " + tokens);
         System.out.println("Polaca: " + polaca);
-        //System.out.println("Estructura: " + estructura);
         System.out.println("Errores semanticos: " + errores_semanticos);
+        if(errores_lexicos.isEmpty() && errores_sintacticos.isEmpty() && errores_semanticos.isEmpty()) {
+        	GeneradorCodigo.generarCodigo();
+        	FileAux.wtiteProgram(a, GeneradorCodigo.codigo.toString());
+    	}
+        //List<Token> tokens = al.getTokens();
+        //System.out.println("Tokens: " + tokens);
+        //System.out.println("Estructura: " + estructura);
         TablaSimbolos.imprimirTabla();
     }
 }

@@ -15,10 +15,11 @@ public class GeneradorCodigo {
 	public static String ultimaFuncionLlamada;
 	private static final String AUX_CONTRATO = "@contrato";
 	private static String nombreAux2bytes = "aux2bytes";
+	private static Integer out = 1;
 
 //String de errores fijos posibles al generar el codigo.
 	private static final String ERROR_DIVISION_POR_CERO = "ERROR: Division por cero";
-	private static final String ERROR_OVERFLOW_PRODUCTO = "ERROR: Overflow en operacion de producto";   
+	private static final String ERROR_OVERFLOW_SUMA_FLOTANTE = "ERROR: Overflow en suma de flotante";   
 	private static final String ERROR_INVOCACION = "ERROR: Invocacion de funcion a si misma no permitida";
 
 
@@ -97,10 +98,10 @@ public class GeneradorCodigo {
             .append(nombreAux2bytes).append(" dw ? \n")
             //agregamos las constantes de error
             .append("@ERROR_DIVISION_POR_CERO db \"" + ERROR_DIVISION_POR_CERO + "\", 0\n")
-            .append("@ERROR_OVERFLOW_PRODUCTO db \"" + ERROR_OVERFLOW_PRODUCTO + "\", 0\n")
+            .append("@ERROR_OVERFLOW_SUMA_FLOTANTE db \"" + ERROR_OVERFLOW_SUMA_FLOTANTE + "\", 0\n")
             .append("@ERROR_INVOCACION db \"" + ERROR_INVOCACION + "\", 0\n");
 
-        //generarCodigoDatos(cabecera);
+        generarCodigoDatos(cabecera);
 
         cabecera.append(".code\n");
         cabecera.append(codigo);
@@ -168,7 +169,7 @@ public class GeneradorCodigo {
 	*/
 
 //Funcion utilizada para generar el codigo de todos los simbolos presentes en la TS	
-	public void generarCodigoDatos(StringBuilder cabecera) {
+	public static void generarCodigoDatos(StringBuilder cabecera) {
 		for(Map.Entry<String, Atributo> entry: TablaSimbolos.devolverTabla().entrySet()) {
 			//Recorremos la tabla, tomando el uso
 			String uso = TablaSimbolos.obtenerAtributo(entry.getKey(), "uso");	
@@ -176,10 +177,41 @@ public class GeneradorCodigo {
 			String lexema_actual = entry.getKey();	
 			
 			if(!(tipo == "String")) {
-				if(uso == )
+				if(uso == "constante") {
+					String aux = entry.getKey().replace('.', '_');
+					String prefix = "_";
+					if(tipo == "Float")
+						cabecera.append(prefix + aux + " dq " + entry.getKey() + "\n");
+					else {
+						cabecera.append(prefix + aux + " db " + entry.getKey() + "\n");
+					}
+				}
+				if((uso != "nombre de funcion") && (uso != "constante")){
+					if((uso == "variable") || (uso == "nombre de parametro")) {
+						String prefix = "";
+						prefix = "_";
+						if(tipo == "Float") {
+							cabecera.append(prefix + entry.getKey().replace('@', '_') + " dq ?\n");
+						} else {
+							cabecera.append(prefix + entry.getKey().replace('@', '_') + " db ?\n");
+						}
+					}
+				}
+				if(uso == "auxiliar") {
+					if(tipo == "Entero")
+						cabecera.append(entry.getKey() + " db ? \n");
+					else
+						cabecera.append(entry.getKey() + " dq ? \n");
+				}
+			} else {
+				if(uso != "nombre de programa") {
+					cabecera.append("@out" + out.toString() + " db  \"" + entry.getKey().split("@")[0] + "\", 0\n");
+					out++;
+				}
 			}
 
 		}
+		
 	}
 	
 	public static void generarOperador(String operador) {
@@ -234,7 +266,7 @@ public class GeneradorCodigo {
 				codigo.append("MOV EAX, ").append(op1).append("\n");
 				codigo.append("MUL ").append(op2).append("\n");
 				aux = ocuparAuxiliar(TablaTipos.LONG_TYPE);
-				generarErrorOverflow(aux);
+				//generarErrorOverflow(aux);
 				codigo.append("MOV ").append(aux).append(", EAX\n");
 				pila_tokens.push(aux);
 				break;
@@ -338,6 +370,7 @@ public class GeneradorCodigo {
 
                 codigo.append("FADD\n");
                 aux = ocuparAuxiliar(TablaTipos.FLOAT_TYPE);
+                generarErrorOverflow(aux);
                 codigo.append("FSTP ").append(aux).append("\n");
                 pila_tokens.push(aux);
                 break;
@@ -512,7 +545,7 @@ public class GeneradorCodigo {
 	//Genera codigo necesario ante un error por overflow en multiplicacion de enteros
 	private static void generarErrorOverflow(String aux){
 		codigo.append("JNO ").append(aux.substring(1)).append("\n");    
-        codigo.append("invoke MessageBox, NULL, addr @ERROR_OVERFLOW_PRODUCTO, addr @ERROR_OVERFLOW_PRODUCTO, MB_OK\n");
+        codigo.append("invoke MessageBox, NULL, addr @ERROR_OVERFLOW_SUMA_FLOTANTE, addr @ERROR_OVERFLOW_SUMA_FLOTANTE, MB_OK\n");
         codigo.append("invoke ExitProcess, 0\n");
         codigo.append(aux.substring(1)).append(":\n"); //declaro una label 
 	}
