@@ -47,9 +47,13 @@ declaracion_variables: tipo lista_variables ';' {
 
 lista_variables: lista_variables ',' ID { 
 				var_aux.add($3.sval);
+				String ptr1 = chequeoAmbito($3.sval + Parser.ambito.toString());
+				TablaSimbolos.agregarAtributo(ptr1, "uso", "variable");
                 }
         | ID { 
         		var_aux.add($1.sval);
+				String ptr1 = chequeoAmbito($1.sval + Parser.ambito.toString());
+				TablaSimbolos.agregarAtributo(ptr1, "uso", "variable");
                }
 ;
 

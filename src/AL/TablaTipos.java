@@ -7,10 +7,10 @@ public class TablaTipos {
     public static final int FLOAT = 1;
     public static final int FUNC = 2;
     
-    public static final String FLOAT_TYPE = "float";
-    public static final String LONG_TYPE = "long";
-    public static final String FUNC_TYPE = "funcion";
-    public static final String ERROR_TYPE = "error";
+    public static final String FLOAT_TYPE = "Float";
+    public static final String LONG_TYPE = "Entero";
+    public static final String FUNC_TYPE = "Funcion";
+    public static final String ERROR_TYPE = "Error";
     
     private static final String[][] tiposSumaResta = { { LONG_TYPE, FLOAT_TYPE, ERROR_TYPE },
                                                        { FLOAT_TYPE, FLOAT_TYPE, ERROR_TYPE },
@@ -51,10 +51,10 @@ public class TablaTipos {
     }
 	
     private static int getNumeroTipo(String tipo) {
-        if (tipo.equals(LONG_TYPE)) 
+        if (tipo == LONG_TYPE) 
         	return LONG;
         else 
-        	if (tipo.equals(FLOAT_TYPE)) 
+        	if (tipo == FLOAT_TYPE) 
         		return FLOAT;
         else 
         	return FUNC;

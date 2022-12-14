@@ -15,7 +15,7 @@ public class GeneradorCodigo {
 	public static String ultimaFuncionLlamada;
 	private static final String AUX_CONTRATO = "@contrato";
 	private static String nombreAux2bytes = "aux2bytes";
-	private static Integer out = 1;
+	private static Integer out = 0;
 
 //String de errores fijos posibles al generar el codigo.
 	private static final String ERROR_DIVISION_POR_CERO = "ERROR: Division por cero";
@@ -72,7 +72,7 @@ public class GeneradorCodigo {
 
             ++posicionActualPolaca;
             //Impresion por pantalla para debuggear el codigo
-            //System.out.println("Se leyo el token: " + token + ", la pila actual es: " + pila_tokens);
+            System.out.println("Se leyo el token: " + token + ", la pila actual es: " + pila_tokens);
         }
 
         codigo.append("invoke ExitProcess, 0\n")
@@ -95,7 +95,7 @@ public class GeneradorCodigo {
             .append("includelib \\masm32\\lib\\kernel32.lib\n")
             .append("includelib \\masm32\\lib\\user32.lib\n")
             .append(".data\n")
-            .append(nombreAux2bytes).append(" dw ? \n")
+            //.append(nombreAux2bytes).append(" dw ? \n")
             //agregamos las constantes de error
             .append("@ERROR_DIVISION_POR_CERO db \"" + ERROR_DIVISION_POR_CERO + "\", 0\n")
             .append("@ERROR_OVERFLOW_SUMA_FLOTANTE db \"" + ERROR_OVERFLOW_SUMA_FLOTANTE + "\", 0\n")
@@ -191,9 +191,9 @@ public class GeneradorCodigo {
 						String prefix = "";
 						prefix = "_";
 						if(tipo == "Float") {
-							cabecera.append(prefix + entry.getKey().replace('@', '_') + " dq ?\n");
+							cabecera.append(prefix + entry.getKey() + " dq ?\n");
 						} else {
-							cabecera.append(prefix + entry.getKey().replace('@', '_') + " db ?\n");
+							cabecera.append(prefix + entry.getKey() + " db ?\n");
 						}
 					}
 				}
@@ -205,7 +205,7 @@ public class GeneradorCodigo {
 				}
 			} else {
 				if(uso != "nombre de programa") {
-					cabecera.append("@out" + out.toString() + " db  \"" + entry.getKey().split("@")[0] + "\", 0\n");
+					cabecera.append("cadena" + out.toString() + " db  \"" + entry.getKey().split("@")[0] + "\", 0\n");
 					out++;
 				}
 			}
@@ -215,24 +215,27 @@ public class GeneradorCodigo {
 	}
 	
 	public static void generarOperador(String operador) {
-		String op2 = pila_tokens.pop();
-		String op1 = pila_tokens.pop();
+		String op2 = null;
+		String op1 = null;
+		if(pila_tokens.size() != 0)
+			op2 = pila_tokens.pop();
+		if(pila_tokens.size() != 0)
+			op1 = pila_tokens.pop();
 		
-		if(operador.equals("=:")) {
+		if(operador == "=:") {
 			String aux = op1;
 			op1 = op2;
 			op2 = aux;
 		}
-		
 		String tipo = TablaTipos.getTipoAbarcativo(op1, op2, operador);
 		switch (tipo) {
-			case TablaTipos.LONG_TYPE:
+			case "Entero":
 				generarOperacionEnteros(op1, op2, operador);
 				break;
-			case TablaTipos.FLOAT_TYPE:
+			case "Float":
 				generarOperacionFlotantes(op1, op2, operador);
 				break;
-			case TablaTipos.FUNC_TYPE:
+			case "Funcion":
 				generarOperacionFuncion(op1, op2);
 				break;
 			default: 
@@ -512,7 +515,7 @@ public class GeneradorCodigo {
 		
 		op1 = renombre(op1);
 		
-		if(uso.equals("variable"))
+		if(uso == "variable")
 			op2 = renombre(op2);
 		
 		codigo.append("MOV EAX, ").append(op2).append("\n");
@@ -559,14 +562,18 @@ public class GeneradorCodigo {
 	}
 	
 	private static void generarSalto(String salto) {
-		String direccion = pila_tokens.pop();    
+		String direccion = null;
+		if(pila_tokens.size() != 0)
+			direccion = pila_tokens.pop();    
 
         if (!salto.equals("JMP") && ultimaComparacion.equals("")) {
-            String valor = pila_tokens.pop();
+            String valor = null;
+            if(pila_tokens.size() != 0)
+            	valor = pila_tokens.pop();
             String punt_valor = TablaSimbolos.obtenerSimbolo(valor);
             String uso = TablaSimbolos.obtenerAtributo(punt_valor, "uso");
             
-            if (uso.equals("variable"))
+            if (uso == "variable")
                 valor = renombre(valor);
 
             codigo.append("MOV ECX, ").append(valor).append("\n");

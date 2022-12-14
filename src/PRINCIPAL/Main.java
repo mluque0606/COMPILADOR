@@ -4,7 +4,7 @@ public class Main {
 	public static void main(String[] args) {
 		
 		Compilador c = new Compilador();
-		c.ejecutarCompilador("src/Testeos/Programa_1.txt", "src/Resultado.asm");
+		c.ejecutarCompilador("src/Testeos/Programa_7.txt", "src/Resultado.asm");
 		
 		/*
 		if(args.length > 1) {
