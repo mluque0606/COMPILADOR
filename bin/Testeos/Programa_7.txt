@@ -1,10 +1,10 @@
 programa_7 {
-	fun f1(): i32{
-		i32 y;
+	fun f1(i32 y): i32{
 		y =: 0;
 		while (y < 5) : (y =: y+1){
 			out('ciclo');
 		};
    		return (Y);
  	};
+ 	discard f1(10);
 };

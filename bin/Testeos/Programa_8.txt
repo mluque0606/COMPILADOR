@@ -1,10 +1,10 @@
-program_5 {
+program_8 {
+    	i32 x, i;
     	x =: 10;
-    	i32 i;
-    	i =: 0;
+    	i =: 1;
     	while (i < x) : (i =: i+1) {
-        	if (i/2 = 0) then {
-            	out('par');
+        	if (i = 5) then {
+            	out('mitad');
         	};end_if;
     	};
 };

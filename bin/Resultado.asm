@@ -15,7 +15,6 @@ includelib \masm32\lib\user32.lib
 cadena0 db  "&cadena0", 0
 @5 db 5
 _y db ?
-@10 db 10
 .code
 START:
 f1@programa_7 PROC

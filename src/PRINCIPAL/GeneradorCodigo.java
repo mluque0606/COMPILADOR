@@ -179,7 +179,7 @@ public class GeneradorCodigo {
 			if(!(tipo == "String")) {
 				if(uso == "constante") {
 					String aux = entry.getKey().replace('.', '_');
-					String prefix = "_";
+					String prefix = "@";
 					if(tipo == "Float")
 						cabecera.append(prefix + aux + " dq " + entry.getKey() + "\n");
 					else {
@@ -586,9 +586,22 @@ public class GeneradorCodigo {
         ultimaComparacion = "";
 	}
 	
-	private static void generarLlamadoFuncion() {
+	/*private static void generarLlamadoFuncion() {
+		String parametro = pila_tokens.pop();
+		String funcion = pila_tokens.pop();
+		String funcion_actual = pila_tokens.pop();
+		
+		String punt_funcion = TablaSimbolos.obtenerSimbolo(funcion);
+		String punt_parametro = TablaSimbolos.obtenerParametro(funcion);
+		String tipo_retorno = TablaSimbolos.obtenerAtributo(punt_funcion, "retorno");
+		String uso_funcion = TablaSimbolos.obtenerAtributo(punt_funcion, "uso");
+        //String lexema_parametro = TablaSimbolos.obtenerAtributo(punt_parametro, "lexema");
 
-	}
+		if(funcion_actual.contains("@"))
+			generarErrorInvocacion(funcion, funcion_actual);
+		
+		
+	}*/
 	
     private static void generarCodigoRetorno() {
     	generarOperador("=:");

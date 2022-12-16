@@ -125,5 +125,10 @@ public class TablaSimbolos {
 	public static Map<String, Atributo> devolverTabla(){
 		return tabla;
 	}
+
+	public static String obtenerParametro(String funcion) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

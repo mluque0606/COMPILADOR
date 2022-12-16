@@ -1965,7 +1965,7 @@ case 131:
         					if (ptr1 != null) {
         						boolean esFuncion = TablaSimbolos.obtenerAtributo(ptr1,"uso").equals("nombre de funcion");
         						if (esFuncion) {
-            						boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros").equals("0");
+            						boolean cantidadParametrosCorrectos = TablaSimbolos.obtenerAtributo(ptr1,"cantidad_parametros") == "0";
             						if (cantidadParametrosCorrectos) {
                 						agregarToken(ptr1);
 										agregarToken("#CALL");
